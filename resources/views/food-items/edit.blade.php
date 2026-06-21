@@ -42,7 +42,7 @@
                             @enderror
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Menu Price ($)</label>
+                            <label class="form-label fw-bold">Menu Price (Tsh)</label>
                             <input type="number" name="price" class="form-control @error('price') is-invalid @enderror" 
                                    step="0.01" min="0" value="{{ old('price', $foodItem->price) }}" required>
                             @error('price')
@@ -50,7 +50,7 @@
                             @enderror
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-bold">Cost Price ($)</label>
+                            <label class="form-label fw-bold">Cost Price (Tsh)</label>
                             <input type="number" name="cost_price" class="form-control @error('cost_price') is-invalid @enderror" 
                                    step="0.01" min="0" value="{{ old('cost_price', $foodItem->cost_price) }}" required>
                             @error('cost_price')

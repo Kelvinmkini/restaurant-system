@@ -24,32 +24,32 @@
             <div class="col-md-2">
                 <div class="border rounded p-3 text-center bg-light">
                     <small class="text-muted d-block">Total Sales</small>
-                    <h5 class="text-primary mb-0">${{ number_format($totals['sales'], 2) }}</h5>
+                    <h5 class="text-primary mb-0">Tsh{{ number_format($totals['sales'], 2) }}</h5>
                 </div>
             </div>
             <div class="col-md-2">
                 <div class="border rounded p-3 text-center bg-light">
                     <small class="text-muted d-block">Purchases</small>
-                    <h5 class="text-danger mb-0">${{ number_format($totals['purchases'], 2) }}</h5>
+                    <h5 class="text-danger mb-0">Tsh{{ number_format($totals['purchases'], 2) }}</h5>
                 </div>
             </div>
             <div class="col-md-2">
                 <div class="border rounded p-3 text-center bg-light">
                     <small class="text-muted d-block">Expenses</small>
-                    <h5 class="text-warning mb-0">${{ number_format($totals['expenses'], 2) }}</h5>
+                    <h5 class="text-warning mb-0">Tsh{{ number_format($totals['expenses'], 2) }}</h5>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="border rounded p-3 text-center bg-light">
                     <small class="text-muted d-block">Gross Profit</small>
-                    <h5 class="text-info mb-0">${{ number_format($totals['gross'], 2) }}</h5>
+                    <h5 class="text-info mb-0">Tsh{{ number_format($totals['gross'], 2) }}</h5>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="border rounded p-3 text-center bg-light">
                     <small class="text-muted d-block">Net Profit</small>
                     <h5 class="{{ $totals['net'] >= 0 ? 'text-success' : 'text-danger' }} mb-0">
-                        ${{ number_format($totals['net'], 2) }}
+                        Tsh{{ number_format($totals['net'], 2) }}
                     </h5>
                 </div>
             </div>
@@ -75,12 +75,12 @@
                     <tr>
                         <td>{{ $sale->sale_date->format('M d, Y') }}</td>
                         <td>{{ $sale->guests }}</td>
-                        <td>${{ number_format($sale->total_sales, 2) }}</td>
-                        <td>${{ number_format($sale->market_purchases, 2) }}</td>
-                        <td>${{ number_format($sale->other_expenses, 2) }}</td>
-                        <td class="text-info">${{ number_format($sale->gross_profit, 2) }}</td>
+                        <td>Tsh{{ number_format($sale->total_sales, 2) }}</td>
+                        <td>Tsh{{ number_format($sale->market_purchases, 2) }}</td>
+                        <td>Tsh{{ number_format($sale->other_expenses, 2) }}</td>
+                        <td class="text-info">Tsh{{ number_format($sale->gross_profit, 2) }}</td>
                         <td class="{{ $sale->net_profit >= 0 ? 'profit-positive' : 'profit-negative' }}">
-                            ${{ number_format($sale->net_profit, 2) }}
+                            Tsh{{ number_format($sale->net_profit, 2) }}
                         </td>
                         <td>
                             @if($sale->total_sales > 0)
@@ -106,8 +106,8 @@
                                     @foreach($sale->items as $item)
                                         <li>
                                             {{ $item->foodItem->name }} × {{ $item->quantity }} 
-                                            @ ${{ number_format($item->unit_price, 2) }} = 
-                                            ${{ number_format($item->total_price, 2) }}
+                                            @ Tsh{{ number_format($item->unit_price, 2) }} = 
+                                            Tsh{{ number_format($item->total_price, 2) }}
                                         </li>
                                     @endforeach
                                 </ul>

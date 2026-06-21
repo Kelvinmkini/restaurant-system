@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="row justify-content-center">
-    <div class="col-lg-11">q
+    <div class="col-lg-11">
         <div class="card shadow-lg">
             <div class="card-header bg-white py-3">
                 <h4 class="mb-0"><i class="bi bi-plus-circle-dotted me-2 text-primary"></i>Record New Sale</h4>
@@ -24,12 +24,12 @@
                                    placeholder="0" id="guestsInput">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">Market Purchases ($)</label>
+                            <label class="form-label fw-bold">Market Purchases (Tsh)</label>
                             <input type="number" name="market_purchases" class="form-control" step="0.01" min="0" 
                                    required placeholder="0.00" id="marketPurchases">
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-bold">Other Expenses ($)</label>
+                            <label class="form-label fw-bold">Other Expenses (Tsh)</label>
                             <input type="number" name="other_expenses" class="form-control" step="0.01" min="0" 
                                    required placeholder="0.00" id="otherExpenses">
                         </div>
@@ -50,35 +50,35 @@
                                         <optgroup label="Breakfast">
                                             @foreach($foodItems->where('category', 'breakfast') as $item)
                                                 <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
                                                 </option>
                                             @endforeach
                                         </optgroup>
                                         <optgroup label="Lunch">
                                             @foreach($foodItems->where('category', 'lunch') as $item)
                                                 <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
                                                 </option>
                                             @endforeach
                                         </optgroup>
                                         <optgroup label="Dinner">
                                             @foreach($foodItems->where('category', 'dinner') as $item)
                                                 <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
                                                 </option>
                                             @endforeach
                                         </optgroup>
                                         <optgroup label="Drinks">
                                             @foreach($foodItems->where('category', 'drinks') as $item)
                                                 <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
                                                 </option>
                                             @endforeach
                                         </optgroup>
                                         <optgroup label="Dessert">
                                             @foreach($foodItems->where('category', 'dessert') as $item)
                                                 <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
                                                 </option>
                                             @endforeach
                                         </optgroup>
@@ -90,14 +90,14 @@
                                            placeholder="0" min="1" required>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="form-label small text-muted">Sale Price ($) <span class="text-primary">*</span></label>
+                                    <label class="form-label small text-muted">Sale Price (Tsh) <span class="text-primary">*</span></label>
                                     <input type="number" name="items[0][unit_price]" class="form-control unit-price-input" 
                                            step="0.01" min="0" required placeholder="0.00">
                                     <small class="text-muted">Default: menu price</small>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label small text-muted">Line Total</label>
-                                    <input type="text" class="form-control item-total bg-light" readonly placeholder="$0.00">
+                                    <input type="text" class="form-control item-total bg-light" readonly placeholder="Tsh0.00">
                                 </div>
                                 <div class="col-md-1">
                                     <button type="button" class="btn btn-danger btn-sm remove-item" disabled>
@@ -122,16 +122,16 @@
                             <div class="row">
                                 <div class="col-md-3 text-center border-end">
                                     <small class="text-muted d-block">Total Sales</small>
-                                    <h4 class="text-primary mb-0" id="displayTotalSales">$0.00</h4>
+                                    <h4 class="text-primary mb-0" id="displayTotalSales">Tsh0.00</h4>
                                 </div>
                                 <div class="col-md-3 text-center border-end">
                                     <small class="text-muted d-block">Gross Profit</small>
-                                    <h4 class="text-info mb-0" id="displayGrossProfit">$0.00</h4>
+                                    <h4 class="text-info mb-0" id="displayGrossProfit">Tsh0.00</h4>
                                     <small class="text-muted">Sales - Purchases</small>
                                 </div>
                                 <div class="col-md-3 text-center border-end">
                                     <small class="text-muted d-block">Net Profit</small>
-                                    <h4 class="mb-0" id="displayNetProfit">$0.00</h4>
+                                    <h4 class="mb-0" id="displayNetProfit">Tsh0.00</h4>
                                     <small class="text-muted">Gross - Expenses</small>
                                 </div>
                                 <div class="col-md-3 text-center">
@@ -165,7 +165,7 @@ function calculateRow(row) {
     const totalField = row.querySelector('.item-total');
 
     const total = qty * price;
-    totalField.value = '$' + total.toFixed(2);
+    totalField.value = 'Tsh' + total.toFixed(2);
 
     return total;
 }
@@ -184,9 +184,9 @@ function calculateTotals() {
     const netProfit = grossProfit - otherExpenses;
     const margin = totalSales > 0 ? (netProfit / totalSales) * 100 : 0;
 
-    document.getElementById('displayTotalSales').innerText = '$' + totalSales.toFixed(2);
-    document.getElementById('displayGrossProfit').innerText = '$' + grossProfit.toFixed(2);
-    document.getElementById('displayNetProfit').innerText = '$' + netProfit.toFixed(2);
+    document.getElementById('displayTotalSales').innerText = 'Tsh' + totalSales.toFixed(2);
+    document.getElementById('displayGrossProfit').innerText = 'Tsh' + grossProfit.toFixed(2);
+    document.getElementById('displayNetProfit').innerText = 'Tsh' + netProfit.toFixed(2);
     document.getElementById('displayMargin').innerText = margin.toFixed(1) + '%';
 }
 

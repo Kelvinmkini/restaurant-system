@@ -8,7 +8,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Today's Sales</h6>
-                        <h3 class="mb-0">${{ number_format($summary['today_sales'], 2) }}</h3>
+                        <h3 class="mb-0">Tsh{{ number_format($summary['today_sales'], 2) }}</h3>
                         </div>
                     <i class="bi bi-cash-stack fs-1 opacity-50"></i>
                 </div>
@@ -34,7 +34,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Today's Profit</h6>
-                        <h3 class="mb-0">${{ number_format($summary['today_profit'], 2) }}</h3>
+                        <h3 class="mb-0">Tsh{{ number_format($summary['today_profit'], 2) }}</h3>
                     </div>
                     <i class="bi bi-graph-up-arrow fs-1 opacity-50"></i>
                 </div>
@@ -80,14 +80,14 @@
             <div class="card-body">
                 <div class="mb-4">
                     <label class="text-muted small">Monthly Sales</label>
-                    <h4 class="text-primary">${{ number_format($summary['month_sales'], 2) }}</h4>
+                    <h4 class="text-primary">Tsh{{ number_format($summary['month_sales'], 2) }}</h4>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-primary" style="width: 75%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small">Monthly Net Profit</label>
-                    <h4 class="text-success">${{ number_format($summary['month_profit'], 2) }}</h4>
+                    <h4 class="text-success">Tsh{{ number_format($summary['month_profit'], 2) }}</h4>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-success" style="width: 60%"></div>
                     </div>
@@ -186,7 +186,7 @@ function initChart(data) {
                             if (context.dataset.label.includes('Guests')) {
                                 label += context.parsed.y;
                             } else {
-                                label += '$' + context.parsed.y.toFixed(2);
+                                label += 'Tsh' + context.parsed.y.toFixed(2);
                                 }
                             return label;
                         }
@@ -198,7 +198,7 @@ function initChart(data) {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return '$' + value;
+                            return 'Tsh' + value;
                         }
                     }
                 },
@@ -239,14 +239,14 @@ function loadProfitAnalysis() {
                 labels: labels.reverse(),
                 datasets: [
                     {
-                        label: 'Total Sales ($)',
+                        label: 'Total Sales (Tsh)',
                         data: salesData.reverse(),
                         backgroundColor: 'rgba(54, 162, 235, 0.6)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 2
                     },
                     {
-                        label: 'Net Profit ($)',
+                        label: 'Net Profit (Tsh)',
                         data: profitData.reverse(),
                         backgroundColor: 'rgba(75, 192, 192, 0.6)',
                         borderColor: 'rgba(75, 192, 192, 1)',

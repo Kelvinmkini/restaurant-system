@@ -38,8 +38,8 @@
                                 {{ ucfirst($item->category) }}
                             </span>
                         </td>
-                        <td>${{ number_format($item->price, 2) }}</td>
-                        <td>${{ number_format($item->cost_price, 2) }}</td>
+                        <td>Tsh{{ number_format($item->price, 2) }}</td>
+                        <td>Tsh{{ number_format($item->cost_price, 2) }}</td>
                         <td>
                             @php $margin = $item->price > 0 ? (($item->price - $item->cost_price) / $item->price) * 100 : 0; @endphp
                             <span class="badge bg-{{ $margin > 40 ? 'success' : ($margin > 20 ? 'warning' : 'danger') }}">

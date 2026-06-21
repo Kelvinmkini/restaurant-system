@@ -34,11 +34,11 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Menu Price ($)</label>
+                            <label class="form-label fw-bold">Menu Price (Tsh)</label>
                             <input type="number" name="price" class="form-control" step="0.01" min="0" required placeholder="0.00">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold">Cost Price ($)</label>
+                            <label class="form-label fw-bold">Cost Price (Tsh)</label>
                             <input type="number" name="cost_price" class="form-control" step="0.01" min="0" required placeholder="0.00">
                         </div>
                         <div class="col-12">
