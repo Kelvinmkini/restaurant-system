@@ -54,18 +54,9 @@
                             @endif
                         </td>
                         <td>
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ route('food-items.edit', $item) }}" class="btn btn-warning">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <form action="{{ route('food-items.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete {{ $item->name }}?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
+                            <a href="{{ route('food-items.edit', $item) }}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-pencil me-1"></i>Edit
+                            </a>
                         </td>
                     </tr>
                     @endforeach

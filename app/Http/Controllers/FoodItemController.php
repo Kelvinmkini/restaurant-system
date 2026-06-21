@@ -61,18 +61,4 @@ class FoodItemController extends Controller
         return redirect()->route('food-items.index')->with('success', 'Item "' . $validated['name'] . '" updated successfully!');
     }
 
-    // NEW: Delete item
-    public function destroy(FoodItem $foodItem): RedirectResponse
-    {
-        $name = $foodItem->name;
-        
-        // Check if item has sales before deleting
-        if ($foodItem->saleItems()->count() > 0) {
-            return redirect()->route('food-items.index')
-                ->with('error', 'Cannot delete "' . $name . '" because it has sales records. Deactivate it instead.');
-        }
-
-        $foodItem->delete();
-        return redirect()->route('food-items.index')->with('success', 'Item "' . $name . '" deleted successfully!');
-    }
 }

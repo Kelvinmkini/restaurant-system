@@ -46,6 +46,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/food-items/{foodItem}/edit', [FoodItemController::class, 'edit'])->name('food-items.edit');
     Route::put('/food-items/{foodItem}', [FoodItemController::class, 'update'])->name('food-items.update');
     
-    // NEW: Delete
-    Route::delete('/food-items/{foodItem}', [FoodItemController::class, 'destroy'])->name('food-items.destroy');
 });
