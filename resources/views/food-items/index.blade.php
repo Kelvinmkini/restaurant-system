@@ -3,14 +3,14 @@
 @section('content')
 <div class="card">
     <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-        <h4 class="mb-0"><i class="bi bi-menu-button-wide me-2 text-primary"></i>Food & Drinks Menu (Database)</h4>
+        <h4 class="mb-0"><i class="bi bi-menu-button-wide me-2 text-primary"></i>Food & Drinks Menu</h4>
         <a href="{{ route('food-items.create') }}" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-lg me-1"></i>Add New Items
+            <i class="bi bi-plus-lg me-1"></i>Add New Item
         </a>
     </div>
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-hover">
+            <table class="table table-hover align-middle">
                 <thead class="table-light">
                     <tr>
                         <th>ID</th>
@@ -18,8 +18,9 @@
                         <th>Category</th>
                         <th>Menu Price</th>
                         <th>Cost Price</th>
-                        <th>Profit Margin</th>
+                        <th>Margin</th>
                         <th>Status</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -51,6 +52,20 @@
                             @else
                                 <span class="badge bg-secondary">Inactive</span>
                             @endif
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ route('food-items.edit', $item) }}" class="btn btn-warning">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('food-items.destroy', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete {{ $item->name }}?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     @endforeach

@@ -27,15 +27,25 @@ Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name(
 
 Route::middleware(['auth'])->group(function () {
     
+    // Dashboard
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/api/chart-data', [DashboardController::class, 'chartData'])->name('api.chart');
     Route::get('/api/profit-analysis', [DashboardController::class, 'profitAnalysis'])->name('api.profit');
 
+    // Sales
     Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
     Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
     Route::get('/sales/report', [SaleController::class, 'report'])->name('sales.report');
 
+    // Food Items - CRUD Complete
     Route::get('/food-items', [FoodItemController::class, 'index'])->name('food-items.index');
     Route::get('/food-items/create', [FoodItemController::class, 'create'])->name('food-items.create');
     Route::post('/food-items', [FoodItemController::class, 'store'])->name('food-items.store');
+    
+    // NEW: Edit & Update
+    Route::get('/food-items/{foodItem}/edit', [FoodItemController::class, 'edit'])->name('food-items.edit');
+    Route::put('/food-items/{foodItem}', [FoodItemController::class, 'update'])->name('food-items.update');
+    
+    // NEW: Delete
+    Route::delete('/food-items/{foodItem}', [FoodItemController::class, 'destroy'])->name('food-items.destroy');
 });

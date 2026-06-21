@@ -20,7 +20,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Item Name</label>
-                            <input type="text" name="name" class="form-control" required placeholder="e.g. Coca Cola, Grilled Chicken">
+                            <input type="text" name="name" class="form-control" required placeholder="e.g. Coca Cola">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold">Category</label>
