@@ -1,0 +1,245 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="row justify-content-center">
+    <div class="col-lg-11">q
+        <div class="card shadow-lg">
+            <div class="card-header bg-white py-3">
+                <h4 class="mb-0"><i class="bi bi-plus-circle-dotted me-2 text-primary"></i>Record New Sale</h4>
+                <p class="text-muted mb-0 small">Select items, adjust sale prices if needed. Profit auto-calculated.</p>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ route('sales.store') }}" method="POST" id="saleForm">
+                    @csrf
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Sale Date</label>
+                            <input type="date" name="sale_date" class="form-control" required 
+                                   value="{{ date('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Number of Guests</label>
+                            <input type="number" name="guests" class="form-control" min="0" required 
+                                   placeholder="0" id="guestsInput">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Market Purchases ($)</label>
+                            <input type="number" name="market_purchases" class="form-control" step="0.01" min="0" 
+                                   required placeholder="0.00" id="marketPurchases">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Other Expenses ($)</label>
+                            <input type="number" name="other_expenses" class="form-control" step="0.01" min="0" 
+                                   required placeholder="0.00" id="otherExpenses">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-bold mb-0">Food & Drink Items Sold</label>
+                            <span class="badge bg-info text-dark">You can change the sale price below</span>
+                        </div>
+                        
+                        <div id="itemsContainer">
+                            <div class="row item-row mb-2 align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label small text-muted">Item</label>
+                                    <select name="items[0][food_item_id]" class="form-select item-select" required>
+                                        <option value="">Select Item</option>
+                                        <optgroup label="Breakfast">
+                                            @foreach($foodItems->where('category', 'breakfast') as $item)
+                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
+                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                        <optgroup label="Lunch">
+                                            @foreach($foodItems->where('category', 'lunch') as $item)
+                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
+                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                        <optgroup label="Dinner">
+                                            @foreach($foodItems->where('category', 'dinner') as $item)
+                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
+                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                        <optgroup label="Drinks">
+                                            @foreach($foodItems->where('category', 'drinks') as $item)
+                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
+                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                        <optgroup label="Dessert">
+                                            @foreach($foodItems->where('category', 'dessert') as $item)
+                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
+                                                    {{ $item->name }} (Menu: ${{ number_format($item->price, 2) }})
+                                                </option>
+                                            @endforeach
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small text-muted">Qty</label>
+                                    <input type="number" name="items[0][quantity]" class="form-control quantity-input" 
+                                           placeholder="0" min="1" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small text-muted">Sale Price ($) <span class="text-primary">*</span></label>
+                                    <input type="number" name="items[0][unit_price]" class="form-control unit-price-input" 
+                                           step="0.01" min="0" required placeholder="0.00">
+                                    <small class="text-muted">Default: menu price</small>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label small text-muted">Line Total</label>
+                                    <input type="text" class="form-control item-total bg-light" readonly placeholder="$0.00">
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-danger btn-sm remove-item" disabled>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="addItem">
+                            <i class="bi bi-plus-lg me-1"></i>Add Another Item
+                        </button>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Notes (Optional)</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="Any additional notes..."></textarea>
+                    </div>
+
+                    <div class="card bg-light mb-4 border-primary border-2">
+                        <div class="card-body">
+                            <h6 class="text-primary mb-3"><i class="bi bi-calculator me-2"></i>Auto-Calculated Summary</h6>
+                            <div class="row">
+                                <div class="col-md-3 text-center border-end">
+                                    <small class="text-muted d-block">Total Sales</small>
+                                    <h4 class="text-primary mb-0" id="displayTotalSales">$0.00</h4>
+                                </div>
+                                <div class="col-md-3 text-center border-end">
+                                    <small class="text-muted d-block">Gross Profit</small>
+                                    <h4 class="text-info mb-0" id="displayGrossProfit">$0.00</h4>
+                                    <small class="text-muted">Sales - Purchases</small>
+                                </div>
+                                <div class="col-md-3 text-center border-end">
+                                    <small class="text-muted d-block">Net Profit</small>
+                                    <h4 class="mb-0" id="displayNetProfit">$0.00</h4>
+                                    <small class="text-muted">Gross - Expenses</small>
+                                </div>
+                                <div class="col-md-3 text-center">
+                                    <small class="text-muted d-block">Profit Margin</small>
+                                    <h4 class="text-warning mb-0" id="displayMargin">0%</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary btn-custom">Cancel</a>
+                        <button type="submit" class="btn btn-primary btn-custom btn-lg">
+                            <i class="bi bi-check-lg me-2"></i>Save Sale Record
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@push('scripts')
+<script>
+let itemCount = 1;
+
+function calculateRow(row) {
+    const qty = parseFloat(row.querySelector('.quantity-input').value) || 0;
+    const price = parseFloat(row.querySelector('.unit-price-input').value) || 0;
+    const totalField = row.querySelector('.item-total');
+
+    const total = qty * price;
+    totalField.value = '$' + total.toFixed(2);
+
+    return total;
+}
+
+function calculateTotals() {
+    let totalSales = 0;
+
+    document.querySelectorAll('.item-row').forEach(row => {
+        totalSales += calculateRow(row);
+    });
+
+    const marketPurchases = parseFloat(document.getElementById('marketPurchases').value) || 0;
+    const otherExpenses = parseFloat(document.getElementById('otherExpenses').value) || 0;
+
+    const grossProfit = totalSales - marketPurchases;
+    const netProfit = grossProfit - otherExpenses;
+    const margin = totalSales > 0 ? (netProfit / totalSales) * 100 : 0;
+
+    document.getElementById('displayTotalSales').innerText = '$' + totalSales.toFixed(2);
+    document.getElementById('displayGrossProfit').innerText = '$' + grossProfit.toFixed(2);
+    document.getElementById('displayNetProfit').innerText = '$' + netProfit.toFixed(2);
+    document.getElementById('displayMargin').innerText = margin.toFixed(1) + '%';
+}
+
+document.addEventListener('input', function(e) {
+    if (
+        e.target.classList.contains('quantity-input') ||
+        e.target.classList.contains('unit-price-input')
+    ) {
+        calculateTotals();
+    }
+});
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('item-select')) {
+        const row = e.target.closest('.item-row');
+        const selected = e.target.options[e.target.selectedIndex];
+
+        if (selected.value) {
+            const price = selected.dataset.price || 0;
+            row.querySelector('.unit-price-input').value = price;
+        }
+
+        calculateTotals();
+    }
+});
+
+document.getElementById('addItem').addEventListener('click', function() {
+    const container = document.getElementById('itemsContainer');
+    const firstRow = container.querySelector('.item-row');
+    const newRow = firstRow.cloneNode(true);
+
+    newRow.querySelectorAll('input').forEach(input => {
+        input.value = '';
+    });
+
+    newRow.querySelectorAll('select').forEach(select => {
+        select.selectedIndex = 0;
+    });
+
+    newRow.querySelectorAll('input, select').forEach(input => {
+        if (input.name) {
+            input.name = input.name.replace(/\[\d+\]/, `[${itemCount}]`);
+        }
+    });
+
+    newRow.querySelector('.remove-item').disabled = false;
+    newRow.querySelector('.remove-item').onclick = function() {
+        newRow.remove();
+        calculateTotals();
+    };
+
+    container.appendChild(newRow);
+    itemCount++;
+});
+</script>
+@endpush
