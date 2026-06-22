@@ -9,7 +9,7 @@
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Today's Sales</h6>
                         <h3 class="mb-0">Tsh{{ number_format($summary['today_sales'], 2) }}</h3>
-                        </div>
+                    </div>
                     <i class="bi bi-cash-stack fs-1 opacity-50"></i>
                 </div>
             </div>
@@ -55,14 +55,29 @@
         </div>
     </div>
 </div>
+
 <div class="row g-4">
     <div class="col-lg-8">
         <div class="card">
-            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Sales & Profit Trends (Last 30 Days)</h5>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary active" onclick="updateChart('daily')">Daily</button>
-                    <button class="btn btn-outline-primary"onclick="loadProfitAnalysis()">Monthly</button>
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Sales & Profit Trends</h5>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Date Picker -->
+                    <div id="datePickerContainer" class="d-none">
+                        <input type="date" id="chartDatePicker" class="form-control form-control-sm" style="width: 150px;">
+                    </div>
+                    <!-- Month Picker -->
+                    <div id="monthPickerContainer" class="d-none">
+                        <input type="month" id="chartMonthPicker" class="form-control form-control-sm" style="width: 150px;">
+                    </div>
+                    <div class="btn-group btn-group-sm" id="chartPeriodButtons">
+                        <button class="btn btn-primary active-chart-btn" id="btnDaily" onclick="updateChart('daily')">
+                            <i class="bi bi-calendar-day me-1"></i>Daily
+                        </button>
+                        <button class="btn btn-outline-primary" id="btnMonthly" onclick="updateChart('monthly')">
+                            <i class="bi bi-calendar-month me-1"></i>Monthly
+                        </button>
+                    </div>
                 </div>
             </div>
             <div class="card-body">
@@ -116,6 +131,7 @@
         </div>
     </div>
 </div>
+
 <div class="row mt-4">
     <div class="col-12">
         <div class="card">
@@ -138,7 +154,7 @@
                     </div>
                     <div class="col-md-4">
                         <div class="p-3 border rounded bg-light">
-<h6 class="text-muted">Profit Margin</h6>
+                            <h6 class="text-muted">Profit Margin</h6>
                             <code class="fs-5 text-warning">(Net Profit / Sales) × 100</code>
                         </div>
                     </div>
@@ -148,9 +164,52 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Active button styling */
+    .active-chart-btn {
+        background-color: #0d6efd !important;
+        color: white !important;
+        border-color: #0d6efd !important;
+        font-weight: 600;
+    }
+    
+    .inactive-chart-btn {
+        background-color: transparent !important;
+        color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+    
+    .inactive-chart-btn:hover {
+        background-color: #e7f1ff !important;
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script>
 let salesChart = null;
+let currentPeriod = 'daily';
+
+function setActiveButton(period) {
+    const btnDaily = document.getElementById('btnDaily');
+    const btnMonthly = document.getElementById('btnMonthly');
+    const datePicker = document.getElementById('datePickerContainer');
+    const monthPicker = document.getElementById('monthPickerContainer');
+    
+    if (period === 'daily') {
+        btnDaily.className = 'btn btn-primary active-chart-btn';
+        btnMonthly.className = 'btn btn-outline-primary inactive-chart-btn';
+        datePicker.classList.remove('d-none');
+        monthPicker.classList.add('d-none');
+    } else {
+        btnDaily.className = 'btn btn-outline-primary inactive-chart-btn';
+        btnMonthly.className = 'btn btn-primary active-chart-btn';
+        datePicker.classList.add('d-none');
+        monthPicker.classList.remove('d-none');
+    }
+}
 
 function initChart(data) {
     const ctx = document.getElementById('salesChart').getContext('2d');
@@ -186,8 +245,8 @@ function initChart(data) {
                             if (context.dataset.label.includes('Guests')) {
                                 label += context.parsed.y;
                             } else {
-                                label += 'Tsh' + context.parsed.y.toFixed(2);
-                                }
+                                label += 'Tsh ' + context.parsed.y.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                            }
                             return label;
                         }
                     }
@@ -198,7 +257,7 @@ function initChart(data) {
                     beginAtZero: true,
                     ticks: {
                         callback: function(value) {
-                            return 'Tsh' + value;
+                            return 'Tsh ' + value.toLocaleString('en-US');
                         }
                     }
                 },
@@ -216,50 +275,85 @@ function initChart(data) {
                     }
                 }
             }
-            }
+        }
     });
 }
 
-function updateChart(period) {
-    fetch('{{ route("api.chart") }}')
-        .then(response => response.json())
-        .then(data => initChart(data))
-        .catch(error => console.error('Error:', error));
-}
-
-function loadProfitAnalysis() {
-    fetch('{{ route("api.profit") }}')
-        .then(response => response.json())
-        .then(data => {
-            const labels = data.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`);
-            const salesData = data.map(item => parseFloat(item.total_sales));
-            const profitData = data.map(item => parseFloat(item.total_net));
-            
-            initChart({
-                labels: labels.reverse(),
-                datasets: [
-                    {
-                        label: 'Total Sales (Tsh)',
-                        data: salesData.reverse(),
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2
-                    },
-                    {
-                        label: 'Net Profit (Tsh)',
-                        data: profitData.reverse(),
-                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 2
-                    }
-                ]
-            });
-            });
+function updateChart(period, dateFilter = null) {
+    currentPeriod = period;
+    setActiveButton(period);
+    
+    let url;
+    if (period === 'daily') {
+        url = '{{ route("api.chart") }}';
+        if (dateFilter) {
+            url += (url.includes('?') ? '&' : '?') + 'date=' + dateFilter;
+        }
+        fetch(url)
+            .then(response => response.json())
+            .then(data => initChart(data))
+            .catch(error => console.error('Error:', error));
+    } else {
+        url = '{{ route("api.profit") }}';
+        if (dateFilter) {
+            url += (url.includes('?') ? '&' : '?') + 'month=' + dateFilter;
+        }
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const labels = data.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`);
+                const salesData = data.map(item => parseFloat(item.total_sales));
+                const profitData = data.map(item => parseFloat(item.total_net));
+                
+                initChart({
+                    labels: labels.reverse(),
+                    datasets: [
+                        {
+                            label: 'Total Sales (Tsh)',
+                            data: salesData.reverse(),
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Net Profit (Tsh)',
+                            data: profitData.reverse(),
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2
+                        }
+                    ]
+                });
+            })
+            .catch(error => console.error('Error:', error));
+    }
 }
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
+    // Set default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('chartDatePicker').value = today;
+    
+    // Set default month to current month
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    document.getElementById('chartMonthPicker').value = currentMonth;
+    
+    setActiveButton('daily');
     updateChart('daily');
+    
+    // Event listeners for pickers
+    document.getElementById('chartDatePicker').addEventListener('change', function() {
+        if (currentPeriod === 'daily') {
+            updateChart('daily', this.value);
+        }
+    });
+    
+    document.getElementById('chartMonthPicker').addEventListener('change', function() {
+        if (currentPeriod === 'monthly') {
+            updateChart('monthly', this.value);
+        }
+    });
 });
 </script>
 @endpush
