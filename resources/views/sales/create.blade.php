@@ -15,8 +15,12 @@
                     <div class="row mb-4">
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Sale Date</label>
-                            <input type="date" name="sale_date" class="form-control" required 
-                                   value="{{ date('Y-m-d') }}">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                <input type="text" name="sale_date" class="form-control" required 
+                                       id="saleDate" placeholder="Click to select date">
+                            </div>
+                            <small class="text-muted">Click to open calendar</small>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Number of Guests</label>
@@ -41,7 +45,7 @@
                             <span class="badge bg-info text-dark">You can change the sale price below</span>
                         </div>
                         
-                        <div id="itemsContainer">
+                    <div id="itemsContainer">
                             <div class="row item-row mb-2 align-items-end">
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Item</label>
@@ -155,9 +159,41 @@
 </div>
 @endsection
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<style>
+    .flatpickr-calendar {
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+    }
+    .flatpickr-day.selected {
+        background: #3498db;
+        border-color: #3498db;
+    }
+    .flatpickr-day:hover {
+        background: #e3f2fd;
+    }
+</style>
+@endpush
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script>
 let itemCount = 1;
+
+// Initialize Flatpickr - INASOMA TAREHE YA DEVICE AUTOMATICALLY
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr("#saleDate", {
+        dateFormat: "m-d-Y",
+        defaultDate: new Date(), // Tarehe ya leo kutoka device
+        allowInput: true,
+        clickOpens: true,
+        disableMobile: false, // Inafanya kazi vizuri kwenye simu
+        locale: {
+            firstDayOfWeek: 1 // Monday ni siku ya kwanza
+        }
+    });
+});
 
 function calculateRow(row) {
     const qty = parseFloat(row.querySelector('.quantity-input').value) || 0;
