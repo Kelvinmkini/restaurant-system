@@ -40,8 +40,12 @@
                         <label class="form-label fw-bold">Password</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" 
-                                   required placeholder="Min 8 characters">
+                            <input type="password" name="password" id="registerPassword" 
+                                   class="form-control @error('password') is-invalid @enderror" required 
+                                   placeholder="Min 8 characters">
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('registerPassword', 'registerEye')">
+                                <i class="bi bi-eye" id="registerEye"></i>
+                            </button>
                         </div>
                         @error('password')
                             <span class="invalid-feedback d-block"><strong>{{ $message }}</strong></span>
@@ -52,7 +56,11 @@
                         <label class="form-label fw-bold">Confirm Password</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                            <input type="password" name="password_confirmation" class="form-control" required placeholder="Repeat password">
+                            <input type="password" name="password_confirmation" id="confirmPassword" 
+                                   class="form-control" required placeholder="Repeat password">
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('confirmPassword', 'confirmEye')">
+                                <i class="bi bi-eye" id="confirmEye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -73,3 +81,22 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function togglePassword(inputId, eyeId) {
+    const passwordInput = document.getElementById(inputId);
+    const eyeIcon = document.getElementById(eyeId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.classList.remove('bi-eye');
+        eyeIcon.classList.add('bi-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.classList.remove('bi-eye-slash');
+        eyeIcon.classList.add('bi-eye');
+    }
+}
+</script>
+@endpush

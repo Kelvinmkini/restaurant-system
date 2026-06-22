@@ -28,8 +28,12 @@
                         <label class="form-label fw-bold">Password</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" 
+                            <input type="password" name="password" id="loginPassword" 
+                                   class="form-control @error('password') is-invalid @enderror" 
                                    required placeholder="Enter password">
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('loginPassword', 'loginEye')">
+                                <i class="bi bi-eye" id="loginEye"></i>
+                            </button>
                         </div>
                         @error('password')
                             <span class="invalid-feedback d-block"><strong>{{ $message }}</strong></span>
@@ -61,3 +65,22 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function togglePassword(inputId, eyeId) {
+    const passwordInput = document.getElementById(inputId);
+    const eyeIcon = document.getElementById(eyeId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.classList.remove('bi-eye');
+        eyeIcon.classList.add('bi-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.classList.remove('bi-eye-slash');
+        eyeIcon.classList.add('bi-eye');
+    }
+}
+</script>
+@endpush

@@ -26,7 +26,11 @@
                         <label class="form-label fw-bold">New Password</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" required>
+                            <input type="password" name="password" id="resetPassword" 
+                                   class="form-control @error('password') is-invalid @enderror" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('resetPassword', 'resetEye')">
+                                <i class="bi bi-eye" id="resetEye"></i>
+                            </button>
                         </div>
                         @error('password')
                             <span class="invalid-feedback d-block"><strong>{{ $message }}</strong></span>
@@ -37,7 +41,11 @@
                         <label class="form-label fw-bold">Confirm Password</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
-                            <input type="password" name="password_confirmation" class="form-control" required>
+                            <input type="password" name="password_confirmation" id="resetConfirm" 
+                                   class="form-control" required>
+                            <button type="button" class="btn btn-outline-secondary" onclick="togglePassword('resetConfirm', 'resetConfirmEye')">
+                                <i class="bi bi-eye" id="resetConfirmEye"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -52,3 +60,22 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function togglePassword(inputId, eyeId) {
+    const passwordInput = document.getElementById(inputId);
+    const eyeIcon = document.getElementById(eyeId);
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.classList.remove('bi-eye');
+        eyeIcon.classList.add('bi-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        eyeIcon.classList.remove('bi-eye-slash');
+        eyeIcon.classList.add('bi-eye');
+    }
+}
+</script>
+@endpush
