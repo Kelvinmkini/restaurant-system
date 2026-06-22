@@ -8,7 +8,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Today's Sales</h6>
-                        <h3 class="mb-0">Tsh{{ number_format($summary['today_sales'], 2) }}</h3>
+                        <h3 class="mb-0">Tsh{{ number_format($summary['today_sales'] ?? 0, 2) }}</h3>
                     </div>
                     <i class="bi bi-cash-stack fs-1 opacity-50"></i>
                 </div>
@@ -21,7 +21,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Today's Guests</h6>
-                        <h3 class="mb-0">{{ $summary['today_guests'] }}</h3>
+                        <h3 class="mb-0">{{ $summary['today_guests'] ?? 0 }}</h3>
                     </div>
                     <i class="bi bi-people fs-1 opacity-50"></i>
                 </div>
@@ -33,8 +33,8 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-uppercase mb-2 opacity-75">Today's Profit</h6>
-                        <h3 class="mb-0">Tsh{{ number_format($summary['today_profit'], 2) }}</h3>
+                        <h6 class="text-uppercase mb-2 opacity-75">Today's Net Profit</h6>
+                        <h3 class="mb-0">Tsh{{ number_format($summary['today_net_profit'] ?? $summary['today_profit'] ?? 0, 2) }}</h3>
                     </div>
                     <i class="bi bi-graph-up-arrow fs-1 opacity-50"></i>
                 </div>
@@ -47,7 +47,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Total Transactions</h6>
-                        <h3 class="mb-0">{{ $summary['total_transactions'] }}</h3>
+                        <h3 class="mb-0">{{ $summary['total_transactions'] ?? 0 }}</h3>
                     </div>
                     <i class="bi bi-receipt fs-1 opacity-50"></i>
                 </div>
@@ -95,23 +95,30 @@
             <div class="card-body">
                 <div class="mb-4">
                     <label class="text-muted small">Monthly Sales</label>
-                    <h4 class="text-primary">Tsh{{ number_format($summary['month_sales'], 2) }}</h4>
+                    <h4 class="text-primary">Tsh{{ number_format($summary['month_sales'] ?? 0, 2) }}</h4>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-primary" style="width: 75%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small">Monthly Net Profit</label>
-                    <h4 class="text-success">Tsh{{ number_format($summary['month_profit'], 2) }}</h4>
+                    <h4 class="text-success">Tsh{{ number_format($summary['month_profit'] ?? 0, 2) }}</h4>
                     <div class="progress" style="height: 8px;">
                         <div class="progress-bar bg-success" style="width: 60%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
+                    <label class="text-muted small">Total Guests (This Month)</label>
+                    <h4 class="text-info">{{ $summary['month_guests'] ?? 0 }}</h4>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-info" style="width: 55%"></div>
+                    </div>
+                </div>
+                <div class="mb-4">
                     <label class="text-muted small">Profit Margin</label>
                     <h4 class="text-warning">
-                        @if($summary['month_sales'] > 0)
-                            {{ number_format(($summary['month_profit'] / $summary['month_sales']) * 100, 1) }}%
+                        @if(($summary['month_sales'] ?? 0) > 0)
+                            {{ number_format((($summary['month_profit'] ?? 0) / ($summary['month_sales'] ?? 0)) * 100, 1) }}%
                         @else
                             0%
                         @endif
@@ -304,7 +311,7 @@ function updateChart(period, dateFilter = null) {
                 const labels = data.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`);
                 const salesData = data.map(item => parseFloat(item.total_sales));
                 const profitData = data.map(item => parseFloat(item.total_net));
-                
+                const guestsData = data.map(item => parseFloat(item.total_guests));
                 initChart({
                     labels: labels.reverse(),
                     datasets: [
@@ -321,6 +328,17 @@ function updateChart(period, dateFilter = null) {
                             backgroundColor: 'rgba(75, 192, 192, 0.6)',
                             borderColor: 'rgba(75, 192, 192, 1)',
                             borderWidth: 2
+                        },
+                        {
+                            label: 'Total Guests',
+                            data: guestsData.reverse(),
+                            type: 'line',
+                            yAxisID: 'y1',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1
                         }
                     ]
                 });

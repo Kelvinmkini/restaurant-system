@@ -14,12 +14,13 @@ class DashboardController extends Controller {
         $thisMonth = Carbon::now()->startOfMonth();
         
         $summary = [
-            'today_sales' => Sale::whereDate('sale_date', $today)->sum('total_sales'),
-            'today_guests' => Sale::whereDate('sale_date', $today)->sum('guests'),
-            'today_profit' => Sale::whereDate('sale_date', $today)->sum('net_profit'),
-            'month_sales' => Sale::where('sale_date', '>=', $thisMonth)->sum('total_sales'),
-            'month_profit' => Sale::where('sale_date', '>=', $thisMonth)->sum('net_profit'),
-            'total_transactions' => Sale::count(),
+            'today_sales' => Sale::whereDate('sale_date', $today)->sum('total_sales') ?? 0,
+            'today_guests' => Sale::whereDate('sale_date', $today)->sum('guests') ?? 0,
+            'today_profit' => Sale::whereDate('sale_date', $today)->sum('net_profit') ?? 0,
+            'month_sales' => Sale::where('sale_date', '>=', $thisMonth)->sum('total_sales') ?? 0,
+            'month_profit' => Sale::where('sale_date', '>=', $thisMonth)->sum('net_profit') ?? 0,
+            'month_guests' => Sale::where('sale_date', '>=', $thisMonth)->sum('guests') ?? 0, // MPYA - LIVE
+            'total_transactions' => Sale::count() ?? 0,
         ];
 
         return view('dashboard', compact('summary'));
@@ -47,14 +48,14 @@ class DashboardController extends Controller {
             'labels' => $labels,
             'datasets' => [
                 [
-                    'label' => 'Total Sales ($)',
+                    'label' => 'Total Sales (Tsh)',
                     'data' => $salesData,
                     'backgroundColor' => 'rgba(54, 162, 235, 0.6)',
                     'borderColor' => 'rgba(54, 162, 235, 1)',
                     'borderWidth' => 2
                 ],
                 [
-                    'label' => 'Net Profit ($)',
+                    'label' => 'Net Profit (Tsh)',
                     'data' => $profitData,
                     'backgroundColor' => 'rgba(75, 192, 192, 0.6)',
                     'borderColor' => 'rgba(75, 192, 192, 1)',
@@ -81,7 +82,8 @@ class DashboardController extends Controller {
             SUM(market_purchases) as total_purchases,
             SUM(other_expenses) as total_expenses,
             SUM(gross_profit) as total_gross,
-            SUM(net_profit) as total_net
+            SUM(net_profit) as total_net,
+            SUM(guests) as total_guests
         ')
         ->groupBy('year', 'month')
         ->orderByDesc('year')
