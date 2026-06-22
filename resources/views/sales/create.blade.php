@@ -181,20 +181,21 @@
 <script>
 let itemCount = 1;
 
-// Initialize Flatpickr - INASOMA TAREHE YA DEVICE AUTOMATICALLY
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize Date Picker
+document.addEventListener('DOMContentLoaded', function () {
     flatpickr("#saleDate", {
-        dateFormat: "m-d-Y",
-        defaultDate: new Date(), // Tarehe ya leo kutoka device
+        dateFormat: "Y-m-d",
+        defaultDate: new Date(),
         allowInput: true,
         clickOpens: true,
-        disableMobile: false, // Inafanya kazi vizuri kwenye simu
+        disableMobile: false,
         locale: {
-            firstDayOfWeek: 1 // Monday ni siku ya kwanza
+            firstDayOfWeek: 1
         }
     });
 });
 
+// Calculate each row
 function calculateRow(row) {
     const qty = parseFloat(row.querySelector('.quantity-input').value) || 0;
     const price = parseFloat(row.querySelector('.unit-price-input').value) || 0;
@@ -206,6 +207,7 @@ function calculateRow(row) {
     return total;
 }
 
+// Calculate all totals
 function calculateTotals() {
     let totalSales = 0;
 
@@ -226,16 +228,20 @@ function calculateTotals() {
     document.getElementById('displayMargin').innerText = margin.toFixed(1) + '%';
 }
 
-document.addEventListener('input', function(e) {
+// Input events
+document.addEventListener('input', function (e) {
     if (
         e.target.classList.contains('quantity-input') ||
-        e.target.classList.contains('unit-price-input')
+        e.target.classList.contains('unit-price-input') ||
+        e.target.id === 'marketPurchases' ||
+        e.target.id === 'otherExpenses'
     ) {
         calculateTotals();
     }
 });
 
-document.addEventListener('change', function(e) {
+// Select change event
+document.addEventListener('change', function (e) {
     if (e.target.classList.contains('item-select')) {
         const row = e.target.closest('.item-row');
         const selected = e.target.options[e.target.selectedIndex];
@@ -249,33 +255,58 @@ document.addEventListener('change', function(e) {
     }
 });
 
-document.getElementById('addItem').addEventListener('click', function() {
+// Add new item row
+document.getElementById('addItem').addEventListener('click', function () {
     const container = document.getElementById('itemsContainer');
     const firstRow = container.querySelector('.item-row');
     const newRow = firstRow.cloneNode(true);
 
+    // Reset values
     newRow.querySelectorAll('input').forEach(input => {
-        input.value = '';
+        if (
+            input.classList.contains('quantity-input') ||
+            input.classList.contains('unit-price-input')
+        ) {
+            input.value = '';
+        }
+
+        if (input.classList.contains('item-total')) {
+            input.value = 'Tsh0.00';
+        }
     });
 
     newRow.querySelectorAll('select').forEach(select => {
         select.selectedIndex = 0;
     });
 
-    newRow.querySelectorAll('input, select').forEach(input => {
-        if (input.name) {
-            input.name = input.name.replace(/\[\d+\]/, `[${itemCount}]`);
+    // Update names properly
+    newRow.querySelectorAll('input, select').forEach(el => {
+        if (el.name) {
+            el.name = el.name.replace(/items\[\d+\]/, `items[${itemCount}]`);
         }
     });
 
-    newRow.querySelector('.remove-item').disabled = false;
-    newRow.querySelector('.remove-item').onclick = function() {
+    // Enable remove button
+    const removeBtn = newRow.querySelector('.remove-item');
+    removeBtn.disabled = false;
+
+    removeBtn.onclick = function () {
         newRow.remove();
         calculateTotals();
     };
 
     container.appendChild(newRow);
     itemCount++;
+
+    calculateTotals();
+});
+
+// Remove existing rows
+document.querySelectorAll('.remove-item').forEach(btn => {
+    btn.onclick = function () {
+        btn.closest('.item-row').remove();
+        calculateTotals();
+    };
 });
 </script>
 @endpush

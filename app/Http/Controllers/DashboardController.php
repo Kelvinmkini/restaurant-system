@@ -5,25 +5,31 @@ use App\Models\Sale;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\View\View;
-
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller {
     
-    public function index(): View {
+    public function index(Request $request): View {
         $today = Carbon::today();
         $thisMonth = Carbon::now()->startOfMonth();
+        
+        // Get selected month from request (for summary), default to current month
+        $selectedMonth = $request->get('month', now()->format('Y-m'));
+        [$year, $monthNum] = explode('-', $selectedMonth);
+        $selectedStartOfMonth = Carbon::create($year, $monthNum, 1)->startOfMonth();
+        $selectedEndOfMonth = Carbon::create($year, $monthNum, 1)->endOfMonth();
         
         $summary = [
             'today_sales' => Sale::whereDate('sale_date', $today)->sum('total_sales') ?? 0,
             'today_guests' => Sale::whereDate('sale_date', $today)->sum('guests') ?? 0,
             'today_profit' => Sale::whereDate('sale_date', $today)->sum('net_profit') ?? 0,
-            'month_sales' => Sale::where('sale_date', '>=', $thisMonth)->sum('total_sales') ?? 0,
-            'month_profit' => Sale::where('sale_date', '>=', $thisMonth)->sum('net_profit') ?? 0,
-            'month_guests' => Sale::where('sale_date', '>=', $thisMonth)->sum('guests') ?? 0, // MPYA - LIVE
+            'month_sales' => Sale::whereBetween('sale_date', [$selectedStartOfMonth, $selectedEndOfMonth])->sum('total_sales') ?? 0,
+            'month_profit' => Sale::whereBetween('sale_date', [$selectedStartOfMonth, $selectedEndOfMonth])->sum('net_profit') ?? 0,
+            'month_guests' => Sale::whereBetween('sale_date', [$selectedStartOfMonth, $selectedEndOfMonth])->sum('guests') ?? 0,
             'total_transactions' => Sale::count() ?? 0,
         ];
 
-        return view('dashboard', compact('summary'));
+        return view('dashboard', compact('summary', 'selectedMonth'));
     }
 
     public function chartData(): JsonResponse {
@@ -92,5 +98,26 @@ class DashboardController extends Controller {
         ->get();
 
         return response()->json($monthly);
+    }
+
+    // ===== MPYA: API ya Monthly Summary =====
+    public function monthlySummary(Request $request): JsonResponse
+    {
+        $month = $request->get('month', now()->format('Y-m'));
+        [$year, $monthNum] = explode('-', $month);
+        
+        $startOfMonth = Carbon::create($year, $monthNum, 1)->startOfMonth();
+        $endOfMonth = Carbon::create($year, $monthNum, 1)->endOfMonth();
+        
+        $summary = [
+            'month_sales' => Sale::whereBetween('sale_date', [$startOfMonth, $endOfMonth])
+                ->sum('total_sales') ?? 0,
+            'month_profit' => Sale::whereBetween('sale_date', [$startOfMonth, $endOfMonth])
+                ->sum('net_profit') ?? 0,
+            'month_guests' => Sale::whereBetween('sale_date', [$startOfMonth, $endOfMonth])
+                ->sum('guests') ?? 0,
+        ];
+        
+        return response()->json($summary);
     }
 }

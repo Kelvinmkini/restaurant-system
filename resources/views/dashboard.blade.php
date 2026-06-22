@@ -89,34 +89,42 @@
     </div>
     <div class="col-lg-4">
         <div class="card h-100">
-            <div class="card-header bg-white py-3">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-pie-chart me-2 text-success"></i>Monthly Summary</h5>
+                <!-- Month Picker for Summary -->
+                <div class="d-flex align-items-center gap-2">
+                    <input type="month" id="summaryMonthPicker" class="form-control form-control-sm" 
+                           style="width: 140px;" value="{{ $selectedMonth ?? now()->format('Y-m') }}">
+                    <button class="btn btn-sm btn-primary" onclick="loadSummary()">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </div>
             </div>
             <div class="card-body">
                 <div class="mb-4">
                     <label class="text-muted small">Monthly Sales</label>
-                    <h4 class="text-primary">Tsh{{ number_format($summary['month_sales'] ?? 0, 2) }}</h4>
+                    <h4 class="text-primary" id="summaryMonthSales">Tsh{{ number_format($summary['month_sales'] ?? 0, 2) }}</h4>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-primary" style="width: 75%"></div>
+                        <div class="progress-bar bg-primary" id="progressSales" style="width: 75%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small">Monthly Net Profit</label>
-                    <h4 class="text-success">Tsh{{ number_format($summary['month_profit'] ?? 0, 2) }}</h4>
+                    <h4 class="text-success" id="summaryMonthProfit">Tsh{{ number_format($summary['month_profit'] ?? 0, 2) }}</h4>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" style="width: 60%"></div>
+                        <div class="progress-bar bg-success" id="progressProfit" style="width: 60%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small">Total Guests (This Month)</label>
-                    <h4 class="text-info">{{ $summary['month_guests'] ?? 0 }}</h4>
+                    <h4 class="text-info" id="summaryMonthGuests">{{ $summary['month_guests'] ?? 0 }}</h4>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-info" style="width: 55%"></div>
+                        <div class="progress-bar bg-info" id="progressGuests" style="width: 55%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small">Profit Margin</label>
-                    <h4 class="text-warning">
+                    <h4 class="text-warning" id="summaryMargin">
                         @if(($summary['month_sales'] ?? 0) > 0)
                             {{ number_format((($summary['month_profit'] ?? 0) / ($summary['month_sales'] ?? 0)) * 100, 1) }}%
                         @else
@@ -124,7 +132,7 @@
                         @endif
                     </h4>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-warning" style="width: 45%"></div>
+                        <div class="progress-bar bg-warning" id="progressMargin" style="width: 45%"></div>
                     </div>
                 </div>
                 <hr>
@@ -311,7 +319,8 @@ function updateChart(period, dateFilter = null) {
                 const labels = data.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`);
                 const salesData = data.map(item => parseFloat(item.total_sales));
                 const profitData = data.map(item => parseFloat(item.total_net));
-                const guestsData = data.map(item => parseFloat(item.total_guests));
+                const guestsData = data.map(item => parseFloat(item.total_guests || 0));
+                
                 initChart({
                     labels: labels.reverse(),
                     datasets: [
@@ -330,21 +339,54 @@ function updateChart(period, dateFilter = null) {
                             borderWidth: 2
                         },
                         {
-                            label: 'Total Guests',
+                            label: 'Guests',
                             data: guestsData.reverse(),
-                            type: 'line',
-                            yAxisID: 'y1',
-                            borderColor: 'rgba(255, 206, 86, 1)',
-                            backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
                             borderWidth: 2,
-                            fill: false,
-                            tension: 0.1
+                            type: 'line',
+                            yAxisID: 'y1'
                         }
                     ]
                 });
             })
             .catch(error => console.error('Error:', error));
     }
+}
+
+// ===== LOAD SUMMARY FOR SELECTED MONTH =====
+function loadSummary() {
+    const month = document.getElementById('summaryMonthPicker').value;
+    if (!month) return;
+    
+    fetch('{{ route("api.monthly-summary") }}?month=' + month)
+        .then(response => response.json())
+        .then(data => {
+            // Update summary values
+            document.getElementById('summaryMonthSales').innerText = 
+                'Tsh ' + parseFloat(data.month_sales || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('summaryMonthProfit').innerText = 
+                'Tsh ' + parseFloat(data.month_profit || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('summaryMonthGuests').innerText = 
+                parseInt(data.month_guests || 0).toLocaleString('en-US');
+            
+            // Calculate margin
+            const sales = parseFloat(data.month_sales || 0);
+            const profit = parseFloat(data.month_profit || 0);
+            const margin = sales > 0 ? ((profit / sales) * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('summaryMargin').innerText = margin;
+            
+            // Update progress bars (max 100% relative to sales)
+            const maxVal = Math.max(sales, 1);
+            document.getElementById('progressSales').style.width = '100%';
+            document.getElementById('progressProfit').style.width = Math.min((profit / maxVal) * 100, 100) + '%';
+            document.getElementById('progressGuests').style.width = Math.min((parseInt(data.month_guests || 0) / 100) * 100, 100) + '%';
+            document.getElementById('progressMargin').style.width = Math.min(parseFloat(margin), 100) + '%';
+        })
+        .catch(error => {
+            console.error('Error loading summary:', error);
+            alert('Failed to load summary for selected month');
+        });
 }
 
 // Initialize on load
@@ -360,7 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setActiveButton('daily');
     updateChart('daily');
     
-    // Event listeners for pickers
+    // Event listeners for chart pickers
     document.getElementById('chartDatePicker').addEventListener('change', function() {
         if (currentPeriod === 'daily') {
             updateChart('daily', this.value);
@@ -371,6 +413,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentPeriod === 'monthly') {
             updateChart('monthly', this.value);
         }
+    });
+    
+    // Summary month picker - auto-load on change
+    document.getElementById('summaryMonthPicker').addEventListener('change', function() {
+        loadSummary();
     });
 });
 </script>
