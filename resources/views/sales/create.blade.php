@@ -157,16 +157,28 @@ let itemCount = 1;
 
 // Initialize Date Picker
 document.addEventListener('DOMContentLoaded', function () {
+    // ✅ Get device date (local timezone)
+    const deviceDate = new Date();
+    const year = deviceDate.getFullYear();
+    const month = String(deviceDate.getMonth() + 1).padStart(2, '0');
+    const day = String(deviceDate.getDate()).padStart(2, '0');
+    const todayString = `${year}-${month}-${day}`;
+
     flatpickr("#saleDate", {
         dateFormat: "Y-m-d",
-        defaultDate: new Date(),
+        defaultDate: todayString,  // ✅ Use string format instead of Date object
         allowInput: true,
         clickOpens: true,
         disableMobile: false,
+        // ✅ NO minDate - allows past dates
+        // ✅ NO maxDate - allows future dates
         locale: {
             firstDayOfWeek: 1
         }
     });
+    
+    // Calculate initial totals
+    calculateTotals();
 });
 
 // Calculate each row

@@ -7,12 +7,11 @@
         <div class="card border-primary">
             <div class="card-body py-2 d-flex align-items-center gap-3">
                 <label class="fw-bold text-primary mb-0"><i class="bi bi-funnel me-2"></i>Filter by Date:</label>
-                <input type="date" id="dailyFilterDate" class="form-control" style="width: 180px;" 
-                       value="{{ $selectedDate ?? now()->toDateString() }}">
+                <input type="date" id="dailyFilterDate" class="form-control" style="width: 180px;">
                 <button class="btn btn-primary btn-sm" onclick="applyDailyFilter()">
                     <i class="bi bi-search me-1"></i>Apply
                 </button>
-                <span class="text-muted small">Select any date to view daily sales, guests & profit</span>
+                <span class="text-muted small" id="dailyFilterDisplay"></span>
             </div>
         </div>
     </div>
@@ -26,8 +25,8 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Daily Sales</h6>
-                        <h3 class="mb-0" id="dailySalesValue">Tsh{{ number_format($summary['today_sales'] ?? 0, 2) }}</h3>
-                        <small class="opacity-75" id="dailySalesDate">{{ $selectedDate ? date('M d, Y', strtotime($selectedDate)) : 'Today' }}</small>
+                        <h3 class="mb-0" id="dailySalesValue">Tsh 0.00</h3>
+                        <small class="opacity-75" id="dailySalesDate">Today</small>
                     </div>
                     <i class="bi bi-cash-stack fs-1 opacity-50"></i>
                 </div>
@@ -41,8 +40,8 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Daily Guests</h6>
-                        <h3 class="mb-0" id="dailyGuestsValue">{{ $summary['today_guests'] ?? 0 }}</h3>
-                        <small class="opacity-75" id="dailyGuestsDate">{{ $selectedDate ? date('M d, Y', strtotime($selectedDate)) : 'Today' }}</small>
+                        <h3 class="mb-0" id="dailyGuestsValue">0</h3>
+                        <small class="opacity-75" id="dailyGuestsDate">Today</small>
                     </div>
                     <i class="bi bi-people fs-1 opacity-50"></i>
                 </div>
@@ -56,8 +55,8 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Daily Net Profit</h6>
-                        <h3 class="mb-0" id="dailyProfitValue">Tsh{{ number_format($summary['today_net_profit'] ?? $summary['today_profit'] ?? 0, 2) }}</h3>
-                        <small class="opacity-75" id="dailyProfitDate">{{ $selectedDate ? date('M d, Y', strtotime($selectedDate)) : 'Today' }}</small>
+                        <h3 class="mb-0" id="dailyProfitValue">Tsh 0.00</h3>
+                        <small class="opacity-75" id="dailyProfitDate">Today</small>
                     </div>
                     <i class="bi bi-graph-up-arrow fs-1 opacity-50"></i>
                 </div>
@@ -71,7 +70,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Total Transactions</h6>
-                        <h3 class="mb-0">{{ $summary['total_transactions'] ?? 0 }}</h3>
+                        <h3 class="mb-0" id="totalTransactionsValue">0</h3>
                     </div>
                     <i class="bi bi-receipt fs-1 opacity-50"></i>
                 </div>
@@ -87,7 +86,7 @@
                 <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Sales & Profit Trends</h5>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
                     <!-- Date Picker for Daily Chart -->
-                    <div id="datePickerContainer" class="d-none">
+                    <div id="datePickerContainer">
                         <input type="date" id="chartDatePicker" class="form-control form-control-sm" style="width: 150px;">
                     </div>
                     <!-- Month Picker for Monthly Chart -->
@@ -117,46 +116,42 @@
                 <h5 class="mb-0"><i class="bi bi-pie-chart me-2 text-success"></i>Monthly Summary</h5>
                 <!-- Month Picker for Summary -->
                 <div class="d-flex align-items-center gap-2">
-                    <input type="month" id="summaryMonthPicker" class="form-control form-control-sm" 
-                           style="width: 140px;" value="{{ $selectedMonth ?? now()->format('Y-m') }}">
+                    <input type="month" id="summaryMonthPicker" class="form-control form-control-sm" style="width: 140px;">
                     <button class="btn btn-sm btn-primary" onclick="applyMonthlyFilter()">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
             </div>
             <div class="card-body">
+                <div class="text-center mb-3">
+                    <span class="badge bg-primary fs-6" id="monthFilterDisplay"></span>
+                </div>
                 <div class="mb-4">
                     <label class="text-muted small">Monthly Sales</label>
-                    <h4 class="text-primary" id="summaryMonthSales">Tsh{{ number_format($summary['month_sales'] ?? 0, 2) }}</h4>
+                    <h4 class="text-primary" id="summaryMonthSales">Tsh 0.00</h4>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-primary" id="progressSales" style="width: 75%"></div>
+                        <div class="progress-bar bg-primary" id="progressSales" style="width: 0%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small">Monthly Net Profit</label>
-                    <h4 class="text-success" id="summaryMonthProfit">Tsh{{ number_format($summary['month_profit'] ?? 0, 2) }}</h4>
+                    <h4 class="text-success" id="summaryMonthProfit">Tsh 0.00</h4>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-success" id="progressProfit" style="width: 60%"></div>
+                        <div class="progress-bar bg-success" id="progressProfit" style="width: 0%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small">Total Guests (This Month)</label>
-                    <h4 class="text-info" id="summaryMonthGuests">{{ $summary['month_guests'] ?? 0 }}</h4>
+                    <h4 class="text-info" id="summaryMonthGuests">0</h4>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-info" id="progressGuests" style="width: 55%"></div>
+                        <div class="progress-bar bg-info" id="progressGuests" style="width: 0%"></div>
                     </div>
                 </div>
                 <div class="mb-4">
                     <label class="text-muted small">Profit Margin</label>
-                    <h4 class="text-warning" id="summaryMargin">
-                        @if(($summary['month_sales'] ?? 0) > 0)
-                            {{ number_format((($summary['month_profit'] ?? 0) / ($summary['month_sales'] ?? 0)) * 100, 1) }}%
-                        @else
-                            0%
-                        @endif
-                    </h4>
+                    <h4 class="text-warning" id="summaryMargin">0%</h4>
                     <div class="progress" style="height: 8px;">
-                        <div class="progress-bar bg-warning" id="progressMargin" style="width: 45%"></div>
+                        <div class="progress-bar bg-warning" id="progressMargin" style="width: 0%"></div>
                     </div>
                 </div>
                 <hr>
@@ -227,6 +222,38 @@
 <script>
 let salesChart = null;
 let currentPeriod = 'daily';
+
+// ===== GET DEVICE DATE (Local Time) =====
+function getDeviceDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getDeviceMonth() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+}
+
+function formatDateDisplay(dateString) {
+    const dateObj = new Date(dateString + 'T00:00:00');
+    return dateObj.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+}
+
+function formatMonthDisplay(monthString) {
+    const [year, monthNum] = monthString.split('-');
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${monthNames[parseInt(monthNum) - 1]} ${year}`;
+}
 
 function setActiveButton(period) {
     const btnDaily = document.getElementById('btnDaily');
@@ -303,6 +330,18 @@ function updateChart(period, dateFilter = null) {
     currentPeriod = period;
     setActiveButton(period);
     
+    // Update display dates on cards
+    let displayDate;
+    if (dateFilter) {
+        displayDate = formatDateDisplay(dateFilter);
+    } else {
+        displayDate = formatDateDisplay(getDeviceDate());
+    }
+    
+    document.getElementById('dailySalesDate').innerText = displayDate;
+    document.getElementById('dailyGuestsDate').innerText = displayDate;
+    document.getElementById('dailyProfitDate').innerText = displayDate;
+    
     let url;
     if (period === 'daily') {
         url = '{{ route("api.chart") }}';
@@ -317,7 +356,9 @@ function updateChart(period, dateFilter = null) {
         fetch(url)
             .then(response => response.json())
             .then(data => {
-                const labels = data.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`);
+                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const labels = data.map(item => `${monthNames[item.month - 1]} ${item.year}`);
                 const salesData = data.map(item => parseFloat(item.total_sales || 0));
                 const profitData = data.map(item => parseFloat(item.total_net || 0));
                 const guestsData = data.map(item => parseFloat(item.total_guests || 0));
@@ -355,7 +396,7 @@ function updateChart(period, dateFilter = null) {
     }
 }
 
-// ===== APPLY DAILY FILTER (Update Cards + Chart) =====
+// ===== APPLY DAILY FILTER (Update Cards + Chart + Display) =====
 function applyDailyFilter() {
     const date = document.getElementById('dailyFilterDate').value;
     if (!date) return;
@@ -364,6 +405,9 @@ function applyDailyFilter() {
     setActiveButton('daily');
     document.getElementById('chartDatePicker').value = date;
     updateChart('daily', date);
+    
+    // Update display text
+    document.getElementById('dailyFilterDisplay').innerText = formatDateDisplay(date);
 }
 
 function loadDailyStats(date) {
@@ -371,8 +415,7 @@ function loadDailyStats(date) {
     fetch('{{ route("api.daily-stats") }}?date=' + date)
         .then(response => response.json())
         .then(data => {
-            const dateObj = new Date(date);
-            const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const formattedDate = formatDateDisplay(date);
             document.getElementById('dailySalesValue').innerText = 'Tsh ' + parseFloat(data.today_sales || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
             document.getElementById('dailySalesDate').innerText = formattedDate;
             document.getElementById('dailyGuestsValue').innerText = parseInt(data.today_guests || 0).toLocaleString('en-US');
@@ -383,11 +426,14 @@ function loadDailyStats(date) {
         .catch(error => console.error('Error loading daily stats:', error));
 }
 
-// ===== APPLY MONTHLY FILTER (Update Summary + Chart with Daily Breakdown) =====
+// ===== APPLY MONTHLY FILTER (Update Summary + Chart + Display) =====
 function applyMonthlyFilter() {
     const month = document.getElementById('summaryMonthPicker').value;
     if (!month) return;
     loadSummary(month);
+    
+    // Update display text
+    document.getElementById('monthFilterDisplay').innerText = formatMonthDisplay(month);
     
     // Switch to monthly view and show daily breakdown for selected month
     currentPeriod = 'monthly';
@@ -425,18 +471,34 @@ function loadSummary(month) {
         .catch(error => console.error('Error loading summary:', error));
 }
 
-// Initialize on load
+// ===== INITIALIZE ON LOAD - USE DEVICE DATE =====
 document.addEventListener('DOMContentLoaded', function() {
-    const today = new Date().toISOString().split('T')[0];
-    const currentMonth = new Date().toISOString().slice(0, 7);
+    // Get device date (NOT server date)
+    const deviceDate = getDeviceDate();
+    const deviceMonth = getDeviceMonth();
     
-    document.getElementById('dailyFilterDate').value = today;
-    document.getElementById('chartDatePicker').value = today;
-    document.getElementById('chartMonthPicker').value = currentMonth;
+    // Set all date inputs to device date
+    document.getElementById('dailyFilterDate').value = deviceDate;
+    document.getElementById('chartDatePicker').value = deviceDate;
+    document.getElementById('chartMonthPicker').value = deviceMonth;
+    document.getElementById('summaryMonthPicker').value = deviceMonth;
     
+    // Set display texts
+    document.getElementById('dailyFilterDisplay').innerText = formatDateDisplay(deviceDate);
+    document.getElementById('monthFilterDisplay').innerText = formatMonthDisplay(deviceMonth);
+    
+    // Update card dates
+    document.getElementById('dailySalesDate').innerText = formatDateDisplay(deviceDate);
+    document.getElementById('dailyGuestsDate').innerText = formatDateDisplay(deviceDate);
+    document.getElementById('dailyProfitDate').innerText = formatDateDisplay(deviceDate);
+    
+    // Load initial data
     setActiveButton('daily');
-    updateChart('daily');
+    loadDailyStats(deviceDate);
+    loadSummary(deviceMonth);
+    updateChart('daily', deviceDate);
     
+    // Event listeners
     document.getElementById('chartDatePicker').addEventListener('change', function() {
         if (currentPeriod === 'daily') updateChart('daily', this.value);
     });

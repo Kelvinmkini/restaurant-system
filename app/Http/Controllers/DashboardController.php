@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
@@ -7,34 +8,15 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-
-class DashboardController extends Controller {
-    
-    public function index(Request $request): View {
-        $today = Carbon::today();
-        
-        $selectedDate = $request->get('date', now()->toDateString());
-        $selectedDateCarbon = Carbon::parse($selectedDate);
-        
-        $selectedMonth = $request->get('month', now()->format('Y-m'));
-        [$year, $monthNum] = explode('-', $selectedMonth);
-        $selectedStartOfMonth = Carbon::create($year, $monthNum, 1)->startOfMonth();
-        $selectedEndOfMonth = Carbon::create($year, $monthNum, 1)->endOfMonth();
-        
-        $summary = [
-            'today_sales' => Sale::whereDate('sale_date', $selectedDateCarbon)->sum('total_sales') ?? 0,
-            'today_guests' => Sale::whereDate('sale_date', $selectedDateCarbon)->sum('guests') ?? 0,
-            'today_profit' => Sale::whereDate('sale_date', $selectedDateCarbon)->sum('net_profit') ?? 0,
-            'month_sales' => Sale::whereBetween('sale_date', [$selectedStartOfMonth, $selectedEndOfMonth])->sum('total_sales') ?? 0,
-            'month_profit' => Sale::whereBetween('sale_date', [$selectedStartOfMonth, $selectedEndOfMonth])->sum('net_profit') ?? 0,
-            'month_guests' => Sale::whereBetween('sale_date', [$selectedStartOfMonth, $selectedEndOfMonth])->sum('guests') ?? 0,
-            'total_transactions' => Sale::count() ?? 0,
-        ];
-
-        return view('dashboard', compact('summary', 'selectedDate', 'selectedMonth'));
+class DashboardController extends Controller
+{
+    public function index(Request $request): View
+    {
+        // Return empty view - all data loaded via AJAX with device date
+        return view('dashboard');
     }
 
-    // ===== CHART DATA - DAILY (Last 30 days or around selected date) =====
+    // ===== CHART DATA - DAILY =====
     public function chartData(Request $request): JsonResponse {
         $date = $request->get('date');
         
@@ -60,7 +42,8 @@ class DashboardController extends Controller {
         $guestsData = [];
 
         foreach ($sales as $date => $records) {
-            $labels[] = Carbon::parse($date)->format('M d');
+            $carbonDate = Carbon::parse($date);
+            $labels[] = $carbonDate->format('M d, Y');
             $salesData[] = $records->sum('total_sales');
             $profitData[] = $records->sum('net_profit');
             $guestsData[] = $records->sum('guests');
@@ -96,7 +79,7 @@ class DashboardController extends Controller {
         ]);
     }
 
-    // ===== PROFIT ANALYSIS - MONTHLY (Last 12 months) =====
+    // ===== PROFIT ANALYSIS - MONTHLY =====
     public function profitAnalysis(): JsonResponse {
         $monthly = Sale::selectRaw('
             YEAR(sale_date) as year,
@@ -114,7 +97,7 @@ class DashboardController extends Controller {
         return response()->json($monthly);
     }
 
-    // ===== MPYA: MONTHLY DAILY BREAKDOWN =====
+    // ===== MONTHLY DAILY BREAKDOWN =====
     public function monthlyDailyBreakdown(Request $request): JsonResponse {
         $month = $request->get('month', now()->format('Y-m'));
         [$year, $monthNum] = explode('-', $month);
@@ -173,7 +156,7 @@ class DashboardController extends Controller {
         ]);
     }
 
-    // ===== API ya Monthly Summary =====
+    // ===== MONTHLY SUMMARY =====
     public function monthlySummary(Request $request): JsonResponse
     {
         $month = $request->get('month', now()->format('Y-m'));
@@ -194,7 +177,7 @@ class DashboardController extends Controller {
         return response()->json($summary);
     }
 
-    // ===== API ya Daily Stats =====
+    // ===== DAILY STATS =====
     public function dailyStats(Request $request): JsonResponse
     {
         $date = $request->get('date', now()->toDateString());
