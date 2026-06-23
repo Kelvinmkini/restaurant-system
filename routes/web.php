@@ -56,6 +56,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/food-items/{foodItem}/edit', [FoodItemController::class, 'edit'])->name('food-items.edit');
         Route::put('/food-items/{foodItem}', [FoodItemController::class, 'update'])->name('food-items.update');
         Route::delete('/food-items/{foodItem}', [FoodItemController::class, 'destroy'])->name('food-items.destroy');
+        Route::patch('/food-items/{id}/restore', [FoodItemController::class, 'restore'])->name('food-items.restore');
+        Route::delete('/food-items/{id}/force-delete', [FoodItemController::class, 'forceDelete'])->name('food-items.force-delete');
         Route::patch('/food-items/{foodItem}/toggle-status', [FoodItemController::class, 'toggleStatus'])->name('food-items.toggle-status');
     });
     

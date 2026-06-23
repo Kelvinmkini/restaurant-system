@@ -8,9 +8,14 @@ use Illuminate\Http\Request;
 
 class FoodItemController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $items = FoodItem::with('category')->orderBy('name')->get();
+        if ($request->has('trashed')) {
+            $items = FoodItem::onlyTrashed()->with('category')->orderBy('name')->get();
+        } else {
+            $items = FoodItem::with('category')->orderBy('name')->get();
+        }
+        
         return view('food-items.index', compact('items'));
     }
 
@@ -75,17 +80,32 @@ class FoodItemController extends Controller
 
     public function destroy(FoodItem $foodItem)
     {
-        if ($foodItem->saleItems()->count() > 0) {
-            return back()->with('error', 'Cannot delete food item that has sales records.');
-        }
-
         $foodItem->delete();
 
         return redirect()->route('food-items.index')
-            ->with('success', 'Food item deleted successfully.');
+            ->with('success', 'Food item deleted successfully. Sales records remain intact.');
     }
 
-    // Toggle status (active/inactive)
+    // FIX: Add type hint int $id
+    public function restore(int $id)
+    {
+        $foodItem = FoodItem::withTrashed()->findOrFail($id);
+        $foodItem->restore();
+
+        return redirect()->route('food-items.index')
+            ->with('success', 'Food item restored successfully.');
+    }
+
+    // FIX: Add type hint int $id
+    public function forceDelete(int $id)
+    {
+        $foodItem = FoodItem::withTrashed()->findOrFail($id);
+        $foodItem->forceDelete();
+
+        return redirect()->route('food-items.index')
+            ->with('success', 'Food item permanently deleted.');
+    }
+
     public function toggleStatus(FoodItem $foodItem)
     {
         $foodItem->is_active = !$foodItem->is_active;

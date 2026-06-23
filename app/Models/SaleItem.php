@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,9 @@ class SaleItem extends Model {
     }
 
     public function foodItem(): BelongsTo {
-        return $this->belongsTo(FoodItem::class);
+        return $this->belongsTo(FoodItem::class)->withDefault([
+            'name' => '[Deleted Item]',
+            'price' => 0,
+        ]);
     }
 }

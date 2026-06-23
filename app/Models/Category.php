@@ -9,27 +9,11 @@ class Category extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'name',
-        'slug',
-        'description',
-        'color',
-        'icon',
-        'sort_order',
-        'is_active',
-    ];
+    protected $fillable = ['name', 'slug', 'description', 'color', 'sort_order', 'is_active'];
 
-    protected $casts = [
-        'is_active' => 'boolean',
-    ];
-
+    // ADD THIS
     public function foodItems()
     {
         return $this->hasMany(FoodItem::class);
-    }
-
-    public function getRouteKeyName()
-    {
-        return 'slug';
     }
 }

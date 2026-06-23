@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FoodItem extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'category_id',
@@ -23,6 +24,7 @@ class FoodItem extends Model
         'is_active' => 'boolean',
     ];
 
+    // ADD THIS RELATIONSHIP
     public function category()
     {
         return $this->belongsTo(Category::class);
