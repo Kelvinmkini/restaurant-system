@@ -1,46 +1,70 @@
 @extends('layouts.app')
 
 @section('content')
+<!-- Date Filter Row for Daily Stats -->
+<div class="row mb-3 animate-fade-in">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-body py-2 d-flex align-items-center gap-3">
+                <label class="fw-bold text-primary mb-0"><i class="bi bi-funnel me-2"></i>Filter by Date:</label>
+                <input type="date" id="dailyFilterDate" class="form-control" style="width: 180px;" 
+                       value="{{ $selectedDate ?? now()->toDateString() }}">
+                <button class="btn btn-primary btn-sm" onclick="applyDailyFilter()">
+                    <i class="bi bi-search me-1"></i>Apply
+                </button>
+                <span class="text-muted small">Select any date to view daily sales, guests & profit</span>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row g-4 mb-4 animate-fade-in">
+    <!-- Daily Sales Card -->
     <div class="col-md-3">
         <div class="card stat-card bg-gradient-primary text-white h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-uppercase mb-2 opacity-75">Today's Sales</h6>
-                        <h3 class="mb-0">Tsh{{ number_format($summary['today_sales'] ?? 0, 2) }}</h3>
+                        <h6 class="text-uppercase mb-2 opacity-75">Daily Sales</h6>
+                        <h3 class="mb-0" id="dailySalesValue">Tsh{{ number_format($summary['today_sales'] ?? 0, 2) }}</h3>
+                        <small class="opacity-75" id="dailySalesDate">{{ $selectedDate ? date('M d, Y', strtotime($selectedDate)) : 'Today' }}</small>
                     </div>
                     <i class="bi bi-cash-stack fs-1 opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Daily Guests Card -->
     <div class="col-md-3">
         <div class="card stat-card bg-gradient-success text-white h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-uppercase mb-2 opacity-75">Today's Guests</h6>
-                        <h3 class="mb-0">{{ $summary['today_guests'] ?? 0 }}</h3>
+                        <h6 class="text-uppercase mb-2 opacity-75">Daily Guests</h6>
+                        <h3 class="mb-0" id="dailyGuestsValue">{{ $summary['today_guests'] ?? 0 }}</h3>
+                        <small class="opacity-75" id="dailyGuestsDate">{{ $selectedDate ? date('M d, Y', strtotime($selectedDate)) : 'Today' }}</small>
                     </div>
                     <i class="bi bi-people fs-1 opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Daily Net Profit Card -->
     <div class="col-md-3">
         <div class="card stat-card bg-gradient-warning text-white h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-uppercase mb-2 opacity-75">Today's Net Profit</h6>
-                        <h3 class="mb-0">Tsh{{ number_format($summary['today_net_profit'] ?? $summary['today_profit'] ?? 0, 2) }}</h3>
+                        <h6 class="text-uppercase mb-2 opacity-75">Daily Net Profit</h6>
+                        <h3 class="mb-0" id="dailyProfitValue">Tsh{{ number_format($summary['today_net_profit'] ?? $summary['today_profit'] ?? 0, 2) }}</h3>
+                        <small class="opacity-75" id="dailyProfitDate">{{ $selectedDate ? date('M d, Y', strtotime($selectedDate)) : 'Today' }}</small>
                     </div>
                     <i class="bi bi-graph-up-arrow fs-1 opacity-50"></i>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Total Transactions Card -->
     <div class="col-md-3">
         <div class="card stat-card bg-gradient-info text-white h-100">
             <div class="card-body">
@@ -62,11 +86,11 @@
             <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
                 <h5 class="mb-0"><i class="bi bi-bar-chart-line me-2 text-primary"></i>Sales & Profit Trends</h5>
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <!-- Date Picker -->
+                    <!-- Date Picker for Daily Chart -->
                     <div id="datePickerContainer" class="d-none">
                         <input type="date" id="chartDatePicker" class="form-control form-control-sm" style="width: 150px;">
                     </div>
-                    <!-- Month Picker -->
+                    <!-- Month Picker for Monthly Chart -->
                     <div id="monthPickerContainer" class="d-none">
                         <input type="month" id="chartMonthPicker" class="form-control form-control-sm" style="width: 150px;">
                     </div>
@@ -95,7 +119,7 @@
                 <div class="d-flex align-items-center gap-2">
                     <input type="month" id="summaryMonthPicker" class="form-control form-control-sm" 
                            style="width: 140px;" value="{{ $selectedMonth ?? now()->format('Y-m') }}">
-                    <button class="btn btn-sm btn-primary" onclick="loadSummary()">
+                    <button class="btn btn-sm btn-primary" onclick="applyMonthlyFilter()">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
@@ -182,20 +206,17 @@
 
 @push('styles')
 <style>
-    /* Active button styling */
     .active-chart-btn {
         background-color: #0d6efd !important;
         color: white !important;
         border-color: #0d6efd !important;
         font-weight: 600;
     }
-    
     .inactive-chart-btn {
         background-color: transparent !important;
         color: #0d6efd !important;
         border-color: #0d6efd !important;
     }
-    
     .inactive-chart-btn:hover {
         background-color: #e7f1ff !important;
     }
@@ -228,10 +249,7 @@ function setActiveButton(period) {
 
 function initChart(data) {
     const ctx = document.getElementById('salesChart').getContext('2d');
-    
-    if (salesChart) {
-        salesChart.destroy();
-    }
+    if (salesChart) salesChart.destroy();
 
     salesChart = new Chart(ctx, {
         type: 'bar',
@@ -242,21 +260,14 @@ function initChart(data) {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: {
-                    position: 'top',
-                },
+                legend: { position: 'top' },
                 tooltip: {
                     callbacks: {
                         label: function(context) {
                             let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
+                            if (label) label += ': ';
                             if (context.dataset.label.includes('Guests')) {
                                 label += context.parsed.y;
                             } else {
@@ -271,22 +282,16 @@ function initChart(data) {
                 y: {
                     beginAtZero: true,
                     ticks: {
-                        callback: function(value) {
-                            return 'Tsh ' + value.toLocaleString('en-US');
-                        }
+                        callback: function(value) { return 'Tsh ' + value.toLocaleString('en-US'); }
                     }
                 },
                 y1: {
                     type: 'linear',
                     display: true,
                     position: 'right',
-                    grid: {
-                        drawOnChartArea: false,
-                    },
+                    grid: { drawOnChartArea: false },
                     ticks: {
-                        callback: function(value) {
-                            return value + ' guests';
-                        }
+                        callback: function(value) { return value + ' guests'; }
                     }
                 }
             }
@@ -301,24 +306,20 @@ function updateChart(period, dateFilter = null) {
     let url;
     if (period === 'daily') {
         url = '{{ route("api.chart") }}';
-        if (dateFilter) {
-            url += (url.includes('?') ? '&' : '?') + 'date=' + dateFilter;
-        }
+        if (dateFilter) url += (url.includes('?') ? '&' : '?') + 'date=' + dateFilter;
         fetch(url)
             .then(response => response.json())
             .then(data => initChart(data))
             .catch(error => console.error('Error:', error));
     } else {
+        // Monthly: show last 12 months by default
         url = '{{ route("api.profit") }}';
-        if (dateFilter) {
-            url += (url.includes('?') ? '&' : '?') + 'month=' + dateFilter;
-        }
         fetch(url)
             .then(response => response.json())
             .then(data => {
                 const labels = data.map(item => `${item.year}-${String(item.month).padStart(2, '0')}`);
-                const salesData = data.map(item => parseFloat(item.total_sales));
-                const profitData = data.map(item => parseFloat(item.total_net));
+                const salesData = data.map(item => parseFloat(item.total_sales || 0));
+                const profitData = data.map(item => parseFloat(item.total_net || 0));
                 const guestsData = data.map(item => parseFloat(item.total_guests || 0));
                 
                 initChart({
@@ -354,70 +355,98 @@ function updateChart(period, dateFilter = null) {
     }
 }
 
-// ===== LOAD SUMMARY FOR SELECTED MONTH =====
-function loadSummary() {
+// ===== APPLY DAILY FILTER (Update Cards + Chart) =====
+function applyDailyFilter() {
+    const date = document.getElementById('dailyFilterDate').value;
+    if (!date) return;
+    loadDailyStats(date);
+    currentPeriod = 'daily';
+    setActiveButton('daily');
+    document.getElementById('chartDatePicker').value = date;
+    updateChart('daily', date);
+}
+
+function loadDailyStats(date) {
+    if (!date) return;
+    fetch('{{ route("api.daily-stats") }}?date=' + date)
+        .then(response => response.json())
+        .then(data => {
+            const dateObj = new Date(date);
+            const formattedDate = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            document.getElementById('dailySalesValue').innerText = 'Tsh ' + parseFloat(data.today_sales || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('dailySalesDate').innerText = formattedDate;
+            document.getElementById('dailyGuestsValue').innerText = parseInt(data.today_guests || 0).toLocaleString('en-US');
+            document.getElementById('dailyGuestsDate').innerText = formattedDate;
+            document.getElementById('dailyProfitValue').innerText = 'Tsh ' + parseFloat(data.today_profit || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('dailyProfitDate').innerText = formattedDate;
+        })
+        .catch(error => console.error('Error loading daily stats:', error));
+}
+
+// ===== APPLY MONTHLY FILTER (Update Summary + Chart with Daily Breakdown) =====
+function applyMonthlyFilter() {
     const month = document.getElementById('summaryMonthPicker').value;
     if (!month) return;
+    loadSummary(month);
     
+    // Switch to monthly view and show daily breakdown for selected month
+    currentPeriod = 'monthly';
+    setActiveButton('monthly');
+    document.getElementById('chartMonthPicker').value = month;
+    
+    // Fetch daily breakdown for selected month
+    fetch('{{ route("api.monthly-daily") }}?month=' + month)
+        .then(response => response.json())
+        .then(data => {
+            initChart(data);
+        })
+        .catch(error => console.error('Error loading monthly daily breakdown:', error));
+}
+
+function loadSummary(month) {
+    if (!month) month = document.getElementById('summaryMonthPicker').value;
+    if (!month) return;
     fetch('{{ route("api.monthly-summary") }}?month=' + month)
         .then(response => response.json())
         .then(data => {
-            // Update summary values
-            document.getElementById('summaryMonthSales').innerText = 
-                'Tsh ' + parseFloat(data.month_sales || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('summaryMonthProfit').innerText = 
-                'Tsh ' + parseFloat(data.month_profit || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            document.getElementById('summaryMonthGuests').innerText = 
-                parseInt(data.month_guests || 0).toLocaleString('en-US');
-            
-            // Calculate margin
+            document.getElementById('summaryMonthSales').innerText = 'Tsh ' + parseFloat(data.month_sales || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('summaryMonthProfit').innerText = 'Tsh ' + parseFloat(data.month_profit || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('summaryMonthGuests').innerText = parseInt(data.month_guests || 0).toLocaleString('en-US');
             const sales = parseFloat(data.month_sales || 0);
             const profit = parseFloat(data.month_profit || 0);
             const margin = sales > 0 ? ((profit / sales) * 100).toFixed(1) + '%' : '0%';
             document.getElementById('summaryMargin').innerText = margin;
-            
-            // Update progress bars (max 100% relative to sales)
             const maxVal = Math.max(sales, 1);
             document.getElementById('progressSales').style.width = '100%';
             document.getElementById('progressProfit').style.width = Math.min((profit / maxVal) * 100, 100) + '%';
             document.getElementById('progressGuests').style.width = Math.min((parseInt(data.month_guests || 0) / 100) * 100, 100) + '%';
             document.getElementById('progressMargin').style.width = Math.min(parseFloat(margin), 100) + '%';
         })
-        .catch(error => {
-            console.error('Error loading summary:', error);
-            alert('Failed to load summary for selected month');
-        });
+        .catch(error => console.error('Error loading summary:', error));
 }
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
-    // Set default date to today
     const today = new Date().toISOString().split('T')[0];
-    document.getElementById('chartDatePicker').value = today;
-    
-    // Set default month to current month
     const currentMonth = new Date().toISOString().slice(0, 7);
+    
+    document.getElementById('dailyFilterDate').value = today;
+    document.getElementById('chartDatePicker').value = today;
     document.getElementById('chartMonthPicker').value = currentMonth;
     
     setActiveButton('daily');
     updateChart('daily');
     
-    // Event listeners for chart pickers
     document.getElementById('chartDatePicker').addEventListener('change', function() {
-        if (currentPeriod === 'daily') {
-            updateChart('daily', this.value);
-        }
+        if (currentPeriod === 'daily') updateChart('daily', this.value);
     });
     
     document.getElementById('chartMonthPicker').addEventListener('change', function() {
-        if (currentPeriod === 'monthly') {
-            updateChart('monthly', this.value);
-        }
+        if (currentPeriod === 'monthly') updateChart('monthly');
     });
     
-    // Summary month picker - auto-load on change
-    document.getElementById('summaryMonthPicker').addEventListener('change', function() {
-        loadSummary();
+    document.getElementById('dailyFilterDate').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') applyDailyFilter();
     });
 });
 </script>

@@ -42,10 +42,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/food-items/create', [FoodItemController::class, 'create'])->name('food-items.create');
     Route::post('/food-items', [FoodItemController::class, 'store'])->name('food-items.store');
     
-    // NEW: Edit & Update
+    // Edit & Update
     Route::get('/food-items/{foodItem}/edit', [FoodItemController::class, 'edit'])->name('food-items.edit');
     Route::put('/food-items/{foodItem}', [FoodItemController::class, 'update'])->name('food-items.update');
     
-    Route::get('/api/monthly-summary', [DashboardController::class, 'monthlySummary'])
-    ->name('api.monthly-summary');
-});
+    // API routes (zote ziko hapa)
+    Route::get('/api/chart', [DashboardController::class, 'chartData'])->name('api.chart');
+    Route::get('/api/profit', [DashboardController::class, 'profitAnalysis'])->name('api.profit');
+    Route::get('/api/monthly-summary', [DashboardController::class, 'monthlySummary'])->name('api.monthly-summary');
+    Route::get('/api/daily-stats', [DashboardController::class, 'dailyStats'])->name('api.daily-stats');
+    Route::get('/api/monthly-daily', [DashboardController::class, 'monthlyDailyBreakdown'])
+    ->name('api.monthly-daily');
+ });
