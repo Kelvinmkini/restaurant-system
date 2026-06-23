@@ -2,24 +2,52 @@
 
 @section('content')
 <div class="card mb-4">
-    <div class="card-header bg-white py-3">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
         <h4 class="mb-0"><i class="bi bi-file-earmark-text me-2 text-primary"></i>Sales Report</h4>
+        <div class="dropdown">
+            <button class="btn btn-success dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-download me-1"></i> Download Report
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" href="{{ route('sales.download', ['type' => 'filtered', 'from_date' => $fromDate, 'to_date' => $toDate]) }}">
+                        <i class="bi bi-calendar-range me-2"></i>Filtered Report ({{ \Carbon\Carbon::parse($fromDate)->format('M d') }} - {{ \Carbon\Carbon::parse($toDate)->format('M d') }})
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('sales.download', ['type' => 'year', 'year' => now()->year]) }}">
+                        <i class="bi bi-calendar-year me-2"></i>Full Year {{ now()->year }}
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('sales.download', ['type' => 'all']) }}">
+                        <i class="bi bi-archive me-2"></i>All Records
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
     <div class="card-body">
         <form method="GET" class="row g-3 mb-4">
             <div class="col-md-4">
                 <label class="form-label">From Date</label>
-                <input type="date" name="from_date" class="form-control" value="{{ request('from_date') }}">
+                <input type="date" name="from_date" class="form-control" 
+                       value="{{ $fromDate }}" 
+                       max="{{ $toDate }}">
             </div>
             <div class="col-md-4">
                 <label class="form-label">To Date</label>
-                <input type="date" name="to_date" class="form-control" value="{{ request('to_date') }}">
+                <input type="date" name="to_date" class="form-control" 
+                       value="{{ $toDate }}"
+                       min="{{ $fromDate }}">
             </div>
             <div class="col-md-4 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary me-2"><i class="bi bi-funnel me-1"></i>Filter</button>
                 <a href="{{ route('sales.report') }}" class="btn btn-outline-secondary">Reset</a>
             </div>
         </form>
+        
         <div class="row mb-4">
             <div class="col-md-2">
                 <div class="border rounded p-3 text-center bg-light">
@@ -92,6 +120,14 @@
                             @endif
                         </td>
                         <td>
+                            <!-- DELETE ONLY - NO EDIT -->
+                            <form action="{{ route('sales.destroy', $sale) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?')">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm btn-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                             <button class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" 
                                     data-bs-target="#details{{ $sale->id }}">
                                 <i class="bi bi-eye"></i>
@@ -105,7 +141,7 @@
                                 <ul class="list-unstyled mb-0">
                                     @foreach($sale->items as $item)
                                         <li>
-                                            {{ $item->foodItem->name }} × {{ $item->quantity }} 
+                                            {{ $item->foodItem->name ?? 'N/A' }} × {{ $item->quantity }} 
                                             @ Tsh{{ number_format($item->unit_price, 2) }} = 
                                             Tsh{{ number_format($item->total_price, 2) }}
                                         </li>

@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-         Schema::create('food_items', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->nullable()->constrained('categories')->nullOnDelete();
-            $table->string('name');
-            $table->decimal('price', 10, 2);
-            $table->decimal('cost_price', 10, 2);
+            $table->string('name')->unique();
+            $table->string('slug')->unique();
+            $table->text('description')->nullable();
+            $table->string('color', 7)->default('#3498db'); // Hex color
+            $table->string('icon')->nullable(); // Bootstrap icon class
+            $table->integer('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('food_items');
+        Schema::dropIfExists('categories');
     }
 };

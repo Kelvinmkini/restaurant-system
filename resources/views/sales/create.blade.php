@@ -25,17 +25,17 @@
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Number of Guests</label>
                             <input type="number" name="guests" class="form-control" min="0" required 
-                                   placeholder="0" id="guestsInput">
+                                   placeholder="0" id="guestsInput" value="0">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Market Purchases (Tsh)</label>
                             <input type="number" name="market_purchases" class="form-control" step="0.01" min="0" 
-                                   required placeholder="0.00" id="marketPurchases">
+                                   required placeholder="0.00" id="marketPurchases" value="0">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-bold">Other Expenses (Tsh)</label>
                             <input type="number" name="other_expenses" class="form-control" step="0.01" min="0" 
-                                   required placeholder="0.00" id="otherExpenses">
+                                   required placeholder="0.00" id="otherExpenses" value="0">
                         </div>
                     </div>
 
@@ -45,53 +45,27 @@
                             <span class="badge bg-info text-dark">You can change the sale price below</span>
                         </div>
                         
-                    <div id="itemsContainer">
+                        <div id="itemsContainer">
                             <div class="row item-row mb-2 align-items-end">
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Item</label>
                                     <select name="items[0][food_item_id]" class="form-select item-select" required>
                                         <option value="">Select Item</option>
-                                        <optgroup label="Breakfast">
-                                            @foreach($foodItems->where('category', 'breakfast') as $item)
-                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                        <optgroup label="Lunch">
-                                            @foreach($foodItems->where('category', 'lunch') as $item)
-                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                        <optgroup label="Dinner">
-                                            @foreach($foodItems->where('category', 'dinner') as $item)
-                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                        <optgroup label="Drinks">
-                                            @foreach($foodItems->where('category', 'drinks') as $item)
-                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
-                                        <optgroup label="Dessert">
-                                            @foreach($foodItems->where('category', 'dessert') as $item)
-                                                <option value="{{ $item->id }}" data-price="{{ $item->price }}" data-category="{{ $item->category }}">
-                                                    {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
-                                                </option>
-                                            @endforeach
-                                        </optgroup>
+                                        @foreach($foodItems->groupBy('category.name') as $categoryName => $items)
+                                            <optgroup label="{{ $categoryName ?? 'Uncategorized' }}">
+                                                @foreach($items as $item)
+                                                    <option value="{{ $item->id }}" data-price="{{ $item->price }}">
+                                                        {{ $item->name }} (Menu: Tsh{{ number_format($item->price, 2) }})
+                                                    </option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-2">
                                     <label class="form-label small text-muted">Qty</label>
                                     <input type="number" name="items[0][quantity]" class="form-control quantity-input" 
-                                           placeholder="0" min="1" required>
+                                           placeholder="0" min="0" value="0" required>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small text-muted">Sale Price (Tsh) <span class="text-primary">*</span></label>
@@ -224,7 +198,11 @@ function calculateTotals() {
 
     document.getElementById('displayTotalSales').innerText = 'Tsh' + totalSales.toFixed(2);
     document.getElementById('displayGrossProfit').innerText = 'Tsh' + grossProfit.toFixed(2);
-    document.getElementById('displayNetProfit').innerText = 'Tsh' + netProfit.toFixed(2);
+    
+    const netElement = document.getElementById('displayNetProfit');
+    netElement.innerText = 'Tsh' + netProfit.toFixed(2);
+    netElement.className = 'mb-0 ' + (netProfit >= 0 ? 'text-success' : 'text-danger');
+    
     document.getElementById('displayMargin').innerText = margin.toFixed(1) + '%';
 }
 
@@ -261,16 +239,13 @@ document.getElementById('addItem').addEventListener('click', function () {
     const firstRow = container.querySelector('.item-row');
     const newRow = firstRow.cloneNode(true);
 
-    // Reset values
+    // Reset values - QTY starts at 0
     newRow.querySelectorAll('input').forEach(input => {
-        if (
-            input.classList.contains('quantity-input') ||
-            input.classList.contains('unit-price-input')
-        ) {
+        if (input.classList.contains('quantity-input')) {
+            input.value = '0';
+        } else if (input.classList.contains('unit-price-input')) {
             input.value = '';
-        }
-
-        if (input.classList.contains('item-total')) {
+        } else if (input.classList.contains('item-total')) {
             input.value = 'Tsh0.00';
         }
     });

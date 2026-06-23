@@ -2,63 +2,98 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\FoodItem;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
 
 class FoodItemController extends Controller
 {
-    public function index(): View
+    public function index()
     {
-        $items = FoodItem::orderBy('category')->orderBy('name')->paginate(20);
+        $items = FoodItem::with('category')->orderBy('name')->get();
         return view('food-items.index', compact('items'));
     }
 
-    public function create(): View
+    public function create()
     {
-        return view('food-items.create');
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        
+        if ($categories->isEmpty()) {
+            return redirect()->route('categories.create')
+                ->with('warning', 'Please create at least one category before adding food items.');
+        }
+        
+        return view('food-items.create', compact('categories'));
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:food_items,name',
-            'category' => 'required|in:breakfast,lunch,dinner,drinks,dessert',
+            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
-            'cost_price' => 'required|numeric|min:0',
-        ]);
-
-        FoodItem::create($validated);
-        return redirect()->route('food-items.index')->with('success', 'Item "' . $validated['name'] . '" added successfully!');
-    }
-
-    // NEW: Show edit form
-    public function edit(FoodItem $foodItem): View
-    {
-        return view('food-items.edit', compact('foodItem'));
-    }
-
-    // NEW: Update item
-    public function update(Request $request, FoodItem $foodItem): RedirectResponse
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:food_items,name,' . $foodItem->id,
-            'category' => 'required|in:breakfast,lunch,dinner,drinks,dessert',
-            'price' => 'required|numeric|min:0',
-            'cost_price' => 'required|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
             'is_active' => 'boolean',
         ]);
 
-        $foodItem->update([
-            'name' => $validated['name'],
-            'category' => $validated['category'],
-            'price' => $validated['price'],
-            'cost_price' => $validated['cost_price'],
-            'is_active' => $request->boolean('is_active', true),
-        ]);
+        $validated['is_active'] = $request->has('is_active');
 
-        return redirect()->route('food-items.index')->with('success', 'Item "' . $validated['name'] . '" updated successfully!');
+        FoodItem::create($validated);
+
+        return redirect()->route('food-items.index')
+            ->with('success', 'Food item created successfully.');
     }
 
+    public function show(FoodItem $foodItem)
+    {
+        return view('food-items.show', compact('foodItem'));
+    }
+
+    public function edit(FoodItem $foodItem)
+    {
+        $categories = Category::where('is_active', true)->orderBy('name')->get();
+        return view('food-items.edit', compact('foodItem', 'categories'));
+    }
+
+    public function update(Request $request, FoodItem $foodItem)
+    {
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'cost_price' => 'nullable|numeric|min:0',
+            'is_active' => 'boolean',
+        ]);
+
+        $validated['is_active'] = $request->has('is_active');
+
+        $foodItem->update($validated);
+
+        return redirect()->route('food-items.index')
+            ->with('success', 'Food item updated successfully.');
+    }
+
+    public function destroy(FoodItem $foodItem)
+    {
+        if ($foodItem->saleItems()->count() > 0) {
+            return back()->with('error', 'Cannot delete food item that has sales records.');
+        }
+
+        $foodItem->delete();
+
+        return redirect()->route('food-items.index')
+            ->with('success', 'Food item deleted successfully.');
+    }
+
+    // Toggle status (active/inactive)
+    public function toggleStatus(FoodItem $foodItem)
+    {
+        $foodItem->is_active = !$foodItem->is_active;
+        $foodItem->save();
+
+        $status = $foodItem->is_active ? 'activated' : 'deactivated';
+
+        return redirect()->route('food-items.index')
+            ->with('success', "Food item {$status} successfully.");
+    }
 }
