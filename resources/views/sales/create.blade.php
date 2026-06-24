@@ -18,7 +18,7 @@
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
                                 <input type="text" name="sale_date" class="form-control" required 
-                                       id="saleDate" placeholder="Click to select date">
+                                       id="saleDate" placeholder="Select date" readonly>
                             </div>
                             <small class="text-muted">Click to open calendar</small>
                         </div>
@@ -136,9 +136,11 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
+    /* Flatpickr styling improvements */
     .flatpickr-calendar {
         border-radius: 10px;
         box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        z-index: 9999 !important;
     }
     .flatpickr-day.selected {
         background: #3498db;
@@ -146,6 +148,23 @@
     }
     .flatpickr-day:hover {
         background: #e3f2fd;
+    }
+    .flatpickr-current-month {
+        font-size: 1.1em;
+    }
+    .flatpickr-monthDropdown-months {
+        font-size: 0.95em;
+    }
+    
+    /* Ensure datepicker is visible */
+    #saleDate {
+        cursor: pointer;
+        background-color: #fff;
+    }
+    
+    /* Make sure the input is clickable */
+    .input-group-text {
+        cursor: pointer;
     }
 </style>
 @endpush
@@ -156,30 +175,61 @@
 let itemCount = 1;
 
 // Initialize Date Picker
-document.addEventListener('DOMContentLoaded', function () {
-    // ✅ Get device date (local timezone)
+function initDatePicker() {
+    // Pata tarehe ya leo kutoka kwenye kifaa (device)
     const deviceDate = new Date();
     const year = deviceDate.getFullYear();
     const month = String(deviceDate.getMonth() + 1).padStart(2, '0');
     const day = String(deviceDate.getDate()).padStart(2, '0');
     const todayString = `${year}-${month}-${day}`;
 
-    flatpickr("#saleDate", {
+    // Weka tarehe ya leo kwenye input
+    const dateInput = document.getElementById('saleDate');
+    dateInput.value = todayString;
+
+    // Initialize flatpickr - HAKUNA LIMITI YA TAREHE
+    const fp = flatpickr("#saleDate", {
         dateFormat: "Y-m-d",
-        defaultDate: todayString,  // ✅ Use string format instead of Date object
-        allowInput: true,
-        clickOpens: true,
-        disableMobile: false,
-        // ✅ NO minDate - allows past dates
-        // ✅ NO maxDate - allows future dates
+        defaultDate: todayString,
+        allowInput: false,        // Zuia kuandika moja kwa moja
+        clickOpens: true,         // Fungua kwa kubofya
+        disableMobile: false,     // Ruhusu kwenye simu
+        
+        // Ruhusu kuchagua mwaka, mwezi, na tarehe
+        monthSelectorType: "dropdown",  // Dropdown ya miezi
+        yearSelectorType: "dropdown",  // Dropdown ya miaka
+        
+        // HAKUNA minDate wala maxDate - tarehe yoyote inaruhusiwa
+        
+        // Settings za lugha
         locale: {
-            firstDayOfWeek: 1
+            firstDayOfWeek: 1,  // Jumatatu kama siku ya kwanza
+            weekdays: {
+                shorthand: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                longhand: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+            },
+            months: {
+                shorthand: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                longhand: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+            }
+        },
+        
+        // Callback function
+        onReady: function(selectedDates, dateStr, instance) {
+            console.log('Flatpickr initialized successfully');
+            console.log('Current date:', dateStr);
+        },
+        
+        onChange: function(selectedDates, dateStr, instance) {
+            console.log('Date selected:', dateStr);
         }
     });
-    
-    // Calculate initial totals
-    calculateTotals();
-});
+
+    // Bofya kwenye input group pia ifungue kalenda
+    document.querySelector('.input-group-text').addEventListener('click', function() {
+        fp.open();
+    });
+}
 
 // Calculate each row
 function calculateRow(row) {
@@ -269,7 +319,7 @@ document.getElementById('addItem').addEventListener('click', function () {
     // Update names properly
     newRow.querySelectorAll('input, select').forEach(el => {
         if (el.name) {
-            el.name = el.name.replace(/items\[\d+\]/, `items[${itemCount}]`);
+            el.name = el.name.replace(/items\\[\\d+\\]/, `items[${itemCount}]`);
         }
     });
 
@@ -294,6 +344,17 @@ document.querySelectorAll('.remove-item').forEach(btn => {
         btn.closest('.item-row').remove();
         calculateTotals();
     };
+});
+
+// Initialize everything when DOM is ready
+document.addEventListener('DOMContentLoaded', function () {
+    try {
+        initDatePicker();
+        calculateTotals();
+        console.log('Page initialized successfully');
+    } catch (error) {
+        console.error('Initialization error:', error);
+    }
 });
 </script>
 @endpush
