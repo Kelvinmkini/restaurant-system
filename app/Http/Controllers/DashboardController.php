@@ -12,8 +12,35 @@ class DashboardController extends Controller
 {
     public function index(Request $request): View
     {
-        // Return empty view - all data loaded via AJAX with device date
         return view('dashboard');
+    }
+
+    // ===== TOTAL TRANSACTIONS =====
+    public function totalTransactions(Request $request): JsonResponse
+    {
+        $date = $request->get('date', now()->toDateString());
+        $selectedDate = Carbon::parse($date);
+        
+        // Idadi ya transactions za leo
+        $todayTransactions = Sale::whereDate('sale_date', $selectedDate)->count();
+        
+        // Idadi ya transactions za mwezi
+        $monthTransactions = Sale::whereYear('sale_date', $selectedDate->year)
+            ->whereMonth('sale_date', $selectedDate->month)
+            ->count();
+            
+        // Idadi ya transactions za mwaka
+        $yearTransactions = Sale::whereYear('sale_date', $selectedDate->year)->count();
+        
+        // Idadi ya transactions zote
+        $allTransactions = Sale::count();
+
+        return response()->json([
+            'today' => $todayTransactions,
+            'month' => $monthTransactions,
+            'year' => $yearTransactions,
+            'all' => $allTransactions,
+        ]);
     }
 
     // ===== CHART DATA - DAILY =====

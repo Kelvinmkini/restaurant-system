@@ -46,7 +46,8 @@
                         </div>
                         
                         <div id="itemsContainer">
-                            <div class="row item-row mb-2 align-items-end">
+                            <!-- First item row - index 0 -->
+                            <div class="row item-row mb-2 align-items-end" data-index="0">
                                 <div class="col-md-4">
                                     <label class="form-label small text-muted">Item</label>
                                     <select name="items[0][food_item_id]" class="form-select item-select" required>
@@ -65,7 +66,7 @@
                                 <div class="col-md-2">
                                     <label class="form-label small text-muted">Qty</label>
                                     <input type="number" name="items[0][quantity]" class="form-control quantity-input" 
-                                           placeholder="0" min="0" value="0" required>
+                                           placeholder="0" min="1" value="1" required>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label small text-muted">Sale Price (Tsh) <span class="text-primary">*</span></label>
@@ -301,10 +302,10 @@ document.getElementById('addItem').addEventListener('click', function () {
     const firstRow = container.querySelector('.item-row');
     const newRow = firstRow.cloneNode(true);
 
-    // Reset values - QTY starts at 0
+    // Reset values - QTY starts at 1 (not 0)
     newRow.querySelectorAll('input').forEach(input => {
         if (input.classList.contains('quantity-input')) {
-            input.value = '0';
+            input.value = '1';
         } else if (input.classList.contains('unit-price-input')) {
             input.value = '';
         } else if (input.classList.contains('item-total')) {
@@ -316,10 +317,11 @@ document.getElementById('addItem').addEventListener('click', function () {
         select.selectedIndex = 0;
     });
 
-    // Update names properly
+    // Update names properly using data-index
+    newRow.setAttribute('data-index', itemCount);
     newRow.querySelectorAll('input, select').forEach(el => {
         if (el.name) {
-            el.name = el.name.replace(/items\\[\\d+\\]/, `items[${itemCount}]`);
+            el.name = el.name.replace(/items\[\d+\]/, `items[${itemCount}]`);
         }
     });
 

@@ -8,6 +8,7 @@ use App\Models\FoodItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class SaleController extends Controller
@@ -20,6 +21,9 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
+        // Debug: Log all incoming data
+        Log::info('Sale Store Request Data:', $request->all());
+
         $validated = $request->validate([
             'sale_date' => 'required|date',
             'guests' => 'required|integer|min:0',
@@ -32,14 +36,36 @@ class SaleController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
         ]);
 
+        // Debug: Log validated data
+        Log::info('Sale Store Validated Data:', $validated);
+
         DB::beginTransaction();
 
         try {
+            // Hesabu total_sales kutoka kwenye items ZOTE
             $totalSales = 0;
-            foreach ($validated['items'] as $item) {
-                $totalSales += $item['quantity'] * $item['unit_price'];
+            $itemDetails = [];
+            
+            foreach ($validated['items'] as $index => $item) {
+                $lineTotal = $item['quantity'] * $item['unit_price'];
+                $totalSales += $lineTotal;
+                $itemDetails[] = [
+                    'index' => $index,
+                    'food_item_id' => $item['food_item_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'],
+                    'line_total' => $lineTotal
+                ];
             }
 
+            // Debug: Log calculation
+            Log::info('Sale Store Calculation:', [
+                'total_sales' => $totalSales,
+                'items_count' => count($validated['items']),
+                'items' => $itemDetails
+            ]);
+
+            // Create sale - gross_profit na net_profit zitahesabiwa na boot()
             $sale = Sale::create([
                 'sale_date' => $validated['sale_date'],
                 'guests' => $validated['guests'],
@@ -49,43 +75,66 @@ class SaleController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
-            foreach ($validated['items'] as $item) {
-                SaleItem::create([
+            // Debug: Log created sale
+            Log::info('Sale Created:', ['sale_id' => $sale->id, 'total_sales' => $sale->total_sales]);
+
+            // Save items
+            foreach ($validated['items'] as $index => $item) {
+                $saleItem = SaleItem::create([
                     'sale_id' => $sale->id,
                     'food_item_id' => $item['food_item_id'],
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'],
                 ]);
+                
+                Log::info('SaleItem Created:', [
+                    'index' => $index,
+                    'sale_item_id' => $saleItem->id,
+                    'food_item_id' => $item['food_item_id'],
+                    'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price']
+                ]);
             }
 
             DB::commit();
 
+            Log::info('Sale Transaction Committed Successfully');
+
+            // Flash message na redirect kwenye report
             return redirect()->route('sales.report')
                 ->with('success', 'Sale recorded successfully! Total: Tsh' . number_format($totalSales, 2));
 
         } catch (\Exception $e) {
             DB::rollBack();
+            
+            Log::error('Sale Store Error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return back()->with('error', 'Error: ' . $e->getMessage())->withInput();
         }
     }
 
-    // THIS IS THE MISSING METHOD - ADD THIS
     public function report(Request $request)
     {
         $fromDate = $request->get('from_date', now()->startOfMonth()->toDateString());
         $toDate = $request->get('to_date', now()->endOfMonth()->toDateString());
 
+        // Pata sales kwa ajili ya pagination (display)
         $sales = Sale::with('items.foodItem')
             ->whereBetween('sale_date', [$fromDate, $toDate])
             ->orderBy('sale_date', 'desc')
             ->paginate(20);
 
+        // Pata totals kutoka kwenye query mpya (sio pagination)
+        $totalsQuery = Sale::whereBetween('sale_date', [$fromDate, $toDate]);
         $totals = [
-            'sales' => $sales->sum('total_sales'),
-            'purchases' => $sales->sum('market_purchases'),
-            'expenses' => $sales->sum('other_expenses'),
-            'gross' => $sales->sum('gross_profit'),
-            'net' => $sales->sum('net_profit'),
+            'sales' => (float) $totalsQuery->sum('total_sales'),
+            'purchases' => (float) $totalsQuery->sum('market_purchases'),
+            'expenses' => (float) $totalsQuery->sum('other_expenses'),
+            'gross' => (float) $totalsQuery->sum('gross_profit'),
+            'net' => (float) $totalsQuery->sum('net_profit'),
         ];
 
         return view('sales.report', compact('sales', 'totals', 'fromDate', 'toDate'));
@@ -114,11 +163,13 @@ class SaleController extends Controller
         DB::beginTransaction();
 
         try {
+            // Hesabu total_sales kutoka kwenye items ZOTE
             $totalSales = 0;
             foreach ($validated['items'] as $item) {
                 $totalSales += $item['quantity'] * $item['unit_price'];
             }
 
+            // Update sale - gross_profit na net_profit zitahesabiwa na boot()
             $sale->update([
                 'sale_date' => $validated['sale_date'],
                 'guests' => $validated['guests'],
@@ -128,6 +179,7 @@ class SaleController extends Controller
                 'notes' => $validated['notes'] ?? null,
             ]);
 
+            // Delete old items and save new ones
             $sale->items()->delete();
             foreach ($validated['items'] as $item) {
                 SaleItem::create([

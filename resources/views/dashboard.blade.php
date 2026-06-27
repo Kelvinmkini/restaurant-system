@@ -71,6 +71,7 @@
                     <div>
                         <h6 class="text-uppercase mb-2 opacity-75">Total Transactions</h6>
                         <h3 class="mb-0" id="totalTransactionsValue">0</h3>
+                        <small class="opacity-75" id="totalTransactionsLabel">All Time</small>
                     </div>
                     <i class="bi bi-receipt fs-1 opacity-50"></i>
                 </div>
@@ -189,7 +190,7 @@
                     <div class="col-md-4">
                         <div class="p-3 border rounded bg-light">
                             <h6 class="text-muted">Profit Margin</h6>
-                            <code class="fs-5 text-warning">(Net Profit / Sales) × 100</code>
+                            <code class="fs-5 text-warning">(Net Profit / Sales) x 100</code>
                         </div>
                     </div>
                 </div>
@@ -344,7 +345,7 @@ function updateChart(period, dateFilter = null) {
     
     let url;
     if (period === 'daily') {
-        url = '{{ route("api.chart") }}';
+        url = '{{ route("dashboard.chartData") }}';
         if (dateFilter) url += (url.includes('?') ? '&' : '?') + 'date=' + dateFilter;
         fetch(url)
             .then(response => response.json())
@@ -352,7 +353,7 @@ function updateChart(period, dateFilter = null) {
             .catch(error => console.error('Error:', error));
     } else {
         // Monthly: show last 12 months by default
-        url = '{{ route("api.profit") }}';
+        url = '{{ route("dashboard.profitAnalysis") }}';
         fetch(url)
             .then(response => response.json())
             .then(data => {
@@ -401,6 +402,7 @@ function applyDailyFilter() {
     const date = document.getElementById('dailyFilterDate').value;
     if (!date) return;
     loadDailyStats(date);
+    loadTotalTransactions(date);
     currentPeriod = 'daily';
     setActiveButton('daily');
     document.getElementById('chartDatePicker').value = date;
@@ -412,7 +414,7 @@ function applyDailyFilter() {
 
 function loadDailyStats(date) {
     if (!date) return;
-    fetch('{{ route("api.daily-stats") }}?date=' + date)
+    fetch('{{ route("dashboard.dailyStats") }}?date=' + date)
         .then(response => response.json())
         .then(data => {
             const formattedDate = formatDateDisplay(date);
@@ -424,6 +426,19 @@ function loadDailyStats(date) {
             document.getElementById('dailyProfitDate').innerText = formattedDate;
         })
         .catch(error => console.error('Error loading daily stats:', error));
+}
+
+// ===== LOAD TOTAL TRANSACTIONS =====
+function loadTotalTransactions(date) {
+    if (!date) date = getDeviceDate();
+    fetch('{{ route("dashboard.totalTransactions") }}?date=' + date)
+        .then(response => response.json())
+        .then(data => {
+            // Show total transactions (all time)
+            document.getElementById('totalTransactionsValue').innerText = data.all || 0;
+            document.getElementById('totalTransactionsLabel').innerText = 'All Time';
+        })
+        .catch(error => console.error('Error loading transactions:', error));
 }
 
 // ===== APPLY MONTHLY FILTER (Update Summary + Chart + Display) =====
@@ -441,7 +456,7 @@ function applyMonthlyFilter() {
     document.getElementById('chartMonthPicker').value = month;
     
     // Fetch daily breakdown for selected month
-    fetch('{{ route("api.monthly-daily") }}?month=' + month)
+    fetch('{{ route("dashboard.monthlyDaily") }}?month=' + month)
         .then(response => response.json())
         .then(data => {
             initChart(data);
@@ -452,7 +467,7 @@ function applyMonthlyFilter() {
 function loadSummary(month) {
     if (!month) month = document.getElementById('summaryMonthPicker').value;
     if (!month) return;
-    fetch('{{ route("api.monthly-summary") }}?month=' + month)
+    fetch('{{ route("dashboard.monthlySummary") }}?month=' + month)
         .then(response => response.json())
         .then(data => {
             document.getElementById('summaryMonthSales').innerText = 'Tsh ' + parseFloat(data.month_sales || 0).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -495,6 +510,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load initial data
     setActiveButton('daily');
     loadDailyStats(deviceDate);
+    loadTotalTransactions(deviceDate);
     loadSummary(deviceMonth);
     updateChart('daily', deviceDate);
     
