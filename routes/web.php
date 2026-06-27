@@ -29,24 +29,22 @@ Route::post('/password/reset', [ResetPasswordController::class, 'reset'])->name(
 Route::middleware(['auth'])->group(function () {
     
    // Dashboard Routes
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-Route::get('/dashboard/chart-data', [DashboardController::class, 'chartData'])->name('dashboard.chartData');
-Route::get('/dashboard/profit-analysis', [DashboardController::class, 'profitAnalysis'])->name('dashboard.profitAnalysis');
-Route::get('/dashboard/monthly-daily', [DashboardController::class, 'monthlyDailyBreakdown'])->name('dashboard.monthlyDaily');
-Route::get('/dashboard/monthly-summary', [DashboardController::class, 'monthlySummary'])->name('dashboard.monthlySummary');
-Route::get('/dashboard/daily-stats', [DashboardController::class, 'dailyStats'])->name('dashboard.dailyStats');
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/chart-data', [DashboardController::class, 'chartData'])->name('dashboard.chartData');
+    Route::get('/dashboard/profit-analysis', [DashboardController::class, 'profitAnalysis'])->name('dashboard.profitAnalysis');
+    Route::get('/dashboard/monthly-daily', [DashboardController::class, 'monthlyDailyBreakdown'])->name('dashboard.monthlyDaily');
+    Route::get('/dashboard/monthly-summary', [DashboardController::class, 'monthlySummary'])->name('dashboard.monthlySummary');
+    Route::get('/dashboard/daily-stats', [DashboardController::class, 'dailyStats'])->name('dashboard.dailyStats');
+    Route::get('/dashboard/total-transactions', [DashboardController::class, 'totalTransactions'])->name('dashboard.totalTransactions');
 
-// NEW: Total Transactions endpoint
-Route::get('/dashboard/total-transactions', [DashboardController::class, 'totalTransactions'])->name('dashboard.totalTransactions');
-
-// Sales Routes
-Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
-Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
-Route::get('/sales/report', [SaleController::class, 'report'])->name('sales.report');
-Route::get('/sales/{sale}/edit', [SaleController::class, 'edit'])->name('sales.edit');
-Route::put('/sales/{sale}', [SaleController::class, 'update'])->name('sales.update');
-Route::delete('/sales/{sale}', [SaleController::class, 'destroy'])->name('sales.destroy');
-Route::get('/sales/download', [SaleController::class, 'download'])->name('sales.download');
+    // ===== Sales Routes =====
+    Route::get('/sales/create', [SaleController::class, 'create'])->name('sales.create');
+    Route::post('/sales', [SaleController::class, 'store'])->name('sales.store');
+    Route::get('/sales/report', [SaleController::class, 'report'])->name('sales.report');
+    Route::get('/sales/{sale}/edit', [SaleController::class, 'edit'])->name('sales.edit');
+    Route::put('/sales/{sale}', [SaleController::class, 'update'])->name('sales.update');
+    Route::delete('/sales/{sale}', [SaleController::class, 'destroy'])->name('sales.destroy');
+    Route::get('/sales/download', [SaleController::class, 'download'])->name('sales.download');
 
     // Categories - CRUD
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
