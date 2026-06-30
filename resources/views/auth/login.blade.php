@@ -5,7 +5,7 @@
     <div class="col-md-5">
         <div class="card shadow-lg border-0">
             <div class="card-header bg-primary text-white text-center py-4 border-0">
-                <h3 class="mb-0"><i class="bi bi-shop-window me-2"></i>Restaurant Manager</h3>
+                <h3 class="mb-0"><i class="bi bi-shop-window me-2"></i>Shop Manager</h3>
                 <p class="mb-0 opacity-75">Sign in to your account</p>
             </div>
             <div class="card-body p-4 p-md-5">

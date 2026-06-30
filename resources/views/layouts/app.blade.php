@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Restaurant Manager</title>
+    <title>Shop Manager</title>
     
     <!-- FAVICON -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏪</text></svg>">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -176,7 +176,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ route('dashboard') }}">
-                <i class="bi bi-shop-window me-2"></i>Restaurant Manager
+                <i class="bi bi-shop-window me-2"></i>Shop Manager
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -280,7 +280,7 @@
     @auth
     <footer class="footer-fixed">
         <div class="container text-center text-muted">
-            <small>&copy; {{ date('Y') }} Restaurant Sales Management System. Welcome, {{ Auth::user()->name }}.</small>
+            <small>&copy; {{ date('Y') }} Shop Sales Management System. Welcome, {{ Auth::user()->name }}.</small>
         </div>
     </footer>
     @endauth

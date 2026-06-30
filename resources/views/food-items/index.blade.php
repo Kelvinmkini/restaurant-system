@@ -3,9 +3,9 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Food Items</h2>
+        <h2>Items</h2>
         <div>
-            <a href="{{ route('food-items.create') }}" class="btn btn-primary">Add Food Item</a>
+            <a href="{{ route('food-items.create') }}" class="btn btn-primary">Add Item</a>
             <a href="{{ request()->has('trashed') ? route('food-items.index') : route('food-items.index', ['trashed' => 1]) }}" class="btn btn-outline-secondary">
                 {{ request()->has('trashed') ? 'Active Items' : 'Deleted Items' }}
             </a>

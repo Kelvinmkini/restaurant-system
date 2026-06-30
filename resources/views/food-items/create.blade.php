@@ -2,7 +2,7 @@
 
 @section('content')
 <div class="container">
-    <h2>Add Food Item</h2>
+    <h2>Add Item</h2>
 
     <div class="card mt-3">
         <div class="card-body">
@@ -54,7 +54,7 @@
                     <label class="form-check-label">Active</label>
                 </div>
 
-                <button type="submit" class="btn btn-primary">Save Food Item</button>
+                <button type="submit" class="btn btn-primary">Save Item</button>
                 <a href="{{ route('food-items.index') }}" class="btn btn-secondary">Cancel</a>
             </form>
         </div>

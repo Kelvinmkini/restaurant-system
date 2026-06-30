@@ -41,7 +41,7 @@
 
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-bold mb-0">Food & Drink Items Sold</label>
+                            <label class="form-label fw-bold mb-0">Items Sold</label>
                             <span class="badge bg-info text-dark">You can change the sale price below</span>
                         </div>
                         
