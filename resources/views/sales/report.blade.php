@@ -29,22 +29,18 @@
         </div>
     </div>
     <div class="card-body">
-        <form method="GET" class="row g-3 mb-4">
+        <form method="GET" class="row g-3 mb-4" id="filterForm">
             <div class="col-md-4">
                 <label class="form-label">From Date</label>
-                <input type="date" name="from_date" class="form-control" 
-                       value="{{ $fromDate }}" 
-                       max="{{ $toDate }}">
+                <input type="date" name="from_date" class="form-control" id="fromDate">
             </div>
             <div class="col-md-4">
                 <label class="form-label">To Date</label>
-                <input type="date" name="to_date" class="form-control" 
-                       value="{{ $toDate }}"
-                       min="{{ $fromDate }}">
+                <input type="date" name="to_date" class="form-control" id="toDate">
             </div>
             <div class="col-md-4 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary me-2"><i class="bi bi-funnel me-1"></i>Filter</button>
-                <a href="{{ route('sales.report') }}" class="btn btn-outline-secondary">Reset</a>
+                <button type="button" class="btn btn-outline-secondary" onclick="resetFilter()">Reset</button>
             </div>
         </form>
         
@@ -120,7 +116,6 @@
                             @endif
                         </td>
                         <td>
-                            <!-- DELETE ONLY - NO EDIT -->
                             <form action="{{ route('sales.destroy', $sale) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this record?')">
                                 @csrf
                                 @method('DELETE')
@@ -167,3 +162,61 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+// ===== GET DEVICE DATE (Local Time) =====
+function getDeviceDate() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+function getFirstDayOfMonth() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}-01`;
+}
+
+// ===== INITIALIZE FILTER DATES =====
+document.addEventListener('DOMContentLoaded', function() {
+    const deviceDate = getDeviceDate();
+    const firstDayOfMonth = getFirstDayOfMonth();
+    
+    const fromDateInput = document.getElementById('fromDate');
+    const toDateInput = document.getElementById('toDate');
+    
+    // Check if URL has existing filter params
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlFromDate = urlParams.get('from_date');
+    const urlToDate = urlParams.get('to_date');
+    
+    if (urlFromDate && urlToDate) {
+        // Use URL params if they exist
+        fromDateInput.value = urlFromDate;
+        toDateInput.value = urlToDate;
+    } else {
+        // Use device date: from 1st of current month to today
+        fromDateInput.value = firstDayOfMonth;
+        toDateInput.value = deviceDate;
+        
+        // Auto-submit form to load current month data
+        document.getElementById('filterForm').submit();
+    }
+});
+
+// ===== RESET FILTER =====
+function resetFilter() {
+    const deviceDate = getDeviceDate();
+    const firstDayOfMonth = getFirstDayOfMonth();
+    
+    document.getElementById('fromDate').value = firstDayOfMonth;
+    document.getElementById('toDate').value = deviceDate;
+    
+    document.getElementById('filterForm').submit();
+}
+</script>
+@endpush

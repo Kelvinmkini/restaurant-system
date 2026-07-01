@@ -116,29 +116,29 @@ class SaleController extends Controller
         }
     }
 
-    public function report(Request $request)
-    {
-        $fromDate = $request->get('from_date', now()->startOfMonth()->toDateString());
-        $toDate = $request->get('to_date', now()->endOfMonth()->toDateString());
+   public function report(Request $request)
+{
+    // Get device date from request or use current date
+    $deviceDate = now()->toDateString();
+    
+    $fromDate = $request->get('from_date', now()->startOfMonth()->toDateString());
+    $toDate = $request->get('to_date', $deviceDate);
 
-        // Pata sales kwa ajili ya pagination (display)
-        $sales = Sale::with('items.foodItem')
-            ->whereBetween('sale_date', [$fromDate, $toDate])
-            ->orderBy('sale_date', 'desc')
-            ->paginate(20);
+    $sales = Sale::with('items.foodItem')
+        ->whereBetween('sale_date', [$fromDate, $toDate])
+        ->orderBy('sale_date', 'desc')
+        ->paginate(20);
 
-        // Pata totals kutoka kwenye query mpya (sio pagination)
-        $totalsQuery = Sale::whereBetween('sale_date', [$fromDate, $toDate]);
-        $totals = [
-            'sales' => (float) $totalsQuery->sum('total_sales'),
-            'purchases' => (float) $totalsQuery->sum('market_purchases'),
-            'expenses' => (float) $totalsQuery->sum('other_expenses'),
-            'gross' => (float) $totalsQuery->sum('gross_profit'),
-            'net' => (float) $totalsQuery->sum('net_profit'),
-        ];
+    $totals = [
+        'sales' => $sales->sum('total_sales'),
+        'purchases' => $sales->sum('market_purchases'),
+        'expenses' => $sales->sum('other_expenses'),
+        'gross' => $sales->sum('gross_profit'),
+        'net' => $sales->sum('net_profit'),
+    ];
 
-        return view('sales.report', compact('sales', 'totals', 'fromDate', 'toDate'));
-    }
+    return view('sales.report', compact('sales', 'totals', 'fromDate', 'toDate'));
+}
 
     public function edit(Sale $sale)
     {
